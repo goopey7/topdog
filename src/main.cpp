@@ -13,7 +13,7 @@ int main()
 		ship.update(GetFrameTime());
 		BeginDrawing();
 		ClearBackground(BLACK);
-		DrawFPS(10, 10);
+		//DrawFPS(10, 10);
 		// draw dt
 		// DrawText(std::to_string(GetFrameTime()).c_str(), 10, 30, 20, WHITE);
 		ship.draw();
