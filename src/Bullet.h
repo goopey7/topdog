@@ -8,6 +8,8 @@ class Bullet
 		Bullet(Vector2 pos, float rot);
 		void update(float dt);
 		void draw() const;
+		Vector2 getPosition() const { return position; }
+		float getSize() const { return size; }
 	private:
 		Vector2 position;
 		float speed = 500.f;

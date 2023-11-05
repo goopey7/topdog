@@ -3,13 +3,13 @@
 #include <cmath>
 #include <raylib.h>
 
-Ship::Ship()
+Ship::Ship(bool playerControlled) : playerControlled(playerControlled)
 {
 	texture = LoadTexture("res/sprites/shipIdle.png");
 	bullets.reserve(20);
 }
 
-void Ship::update(float dt)
+void Ship::handleInput(float dt)
 {
 	float radians = rotation * (float)M_PI / 180.f;
 	if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A))
@@ -38,6 +38,14 @@ void Ship::update(float dt)
 	{
 		fire();
 	}
+}
+
+void Ship::update(float dt)
+{
+	if (playerControlled)
+	{
+		handleInput(dt);
+	}
 
 	position.x += velocity.x * dt;
 	position.y += velocity.y * dt;
@@ -57,14 +65,25 @@ void Ship::fire()
 	bullets.emplace_back(position, rotation);
 }
 
+void Ship::onCollision(const Bullet& other) { isAlive = false; }
+
 void Ship::draw()
 {
-	DrawTexturePro(texture, {0, 0, (float)texture.width, (float)texture.height},
-				   {position.x, position.y, (float)texture.width, (float)texture.height},
-				   {(float)texture.width / 2, (float)texture.height / 2}, rotation, WHITE);
+	if (isAlive)
+	{
+		DrawTexturePro(texture, {0, 0, (float)texture.width, (float)texture.height},
+					   {position.x, position.y, (float)texture.width, (float)texture.height},
+					   {(float)texture.width / 2, (float)texture.height / 2}, rotation, WHITE);
+	}
 
 	for (const Bullet& bullet : bullets)
 	{
 		bullet.draw();
 	}
+}
+
+Rectangle Ship::getCollisionRect() const
+{
+	return {position.x - texture.width / 2.f, position.y - texture.height / 2.f, (float)texture.width,
+			(float)texture.height};
 }
