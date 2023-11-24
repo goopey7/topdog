@@ -16,4 +16,5 @@ class Game
 	void draw();
   private:
 	std::queue<std::unique_ptr<Scene>> scenes;
+	void mainMenu();
 };

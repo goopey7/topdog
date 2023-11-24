@@ -4,6 +4,8 @@
 #include "Bullet.h"
 #include <vector>
 #include <raylib.h>
+#include <cstdint>
+
 class Ship
 {
 	public:
@@ -23,7 +25,10 @@ class Ship
 		bool playerControlled;
 		bool isAlive = true;
 
-		Texture2D texture;
+		std::vector<Texture2D> textures;
+
+		uint32_t animationIndex = 0;
+		bool animFlip = false;
 
 		void handleInput(float dt);
 		void fire();
