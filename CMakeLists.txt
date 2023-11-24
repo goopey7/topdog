@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
-project(cmp303)
+project(topdog)
 
 # Set the C++ standard
 set(CMAKE_CXX_STANDARD 20)
@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 20)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # Recursively glob all .cpp and .h files in src/ directory
-file(GLOB_RECURSE SRC_FILES "src/*.cpp" "src/*.h")
+file(GLOB_RECURSE SRC_FILES "src/game/*.cpp" "src/game/*.h")
 
 # Define the C++ executable
 add_executable(${PROJECT_NAME} ${SRC_FILES})
