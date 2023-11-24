@@ -1,6 +1,9 @@
 // Sam Collier 2023
 #pragma once
-#include "Ship.h"
+
+#include "Scene.h"
+#include <memory>
+#include <queue>
 
 class Game
 {
@@ -12,6 +15,5 @@ class Game
 	void update(float dt);
 	void draw();
   private:
-	Ship ship;
-	Ship enemy;
+	std::queue<std::unique_ptr<Scene>> scenes;
 };
