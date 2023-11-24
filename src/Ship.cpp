@@ -3,10 +3,11 @@
 #include <cmath>
 #include <raylib.h>
 
-Ship::Ship(bool playerControlled) : playerControlled(playerControlled)
+void Ship::init(bool playerControlled)
 {
-	texture = LoadTexture("res/sprites/shipIdle.png");
+	texture = LoadTexture("res/sprites/shipActive.png");
 	bullets.reserve(20);
+	this->playerControlled = playerControlled;
 }
 
 void Ship::handleInput(float dt)
@@ -87,3 +88,4 @@ Rectangle Ship::getCollisionRect() const
 	return {position.x - texture.width / 2.f, position.y - texture.height / 2.f, (float)texture.width,
 			(float)texture.height};
 }
+

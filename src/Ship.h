@@ -7,7 +7,7 @@
 class Ship
 {
 	public:
-		Ship(bool playerControlled);
+		void init(bool playerControlled);
 		void update(float dt);
 		void draw();
 		void onCollision(const Bullet& other);
