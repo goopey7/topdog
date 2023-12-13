@@ -23,8 +23,15 @@ void Game::mainMenu()
 	if (GuiButton({GetRenderWidth() / 2.f - 100.f, GetRenderHeight() / 2.f - 50.f, 200.f, 100.f},
 				  "Play"))
 	{
+		client.connectToServer("127.0.0.1", 4916);
 		scenes.push(std::make_unique<Level>(&scenes));
 		scenes.pop();
 		scenes.front()->init();
 	}
 }
+
+Game::~Game()
+{
+	client.closeConnection();
+}
+
