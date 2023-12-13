@@ -19,5 +19,7 @@ class Game
   private:
 	std::queue<std::unique_ptr<Scene>> scenes;
 	void mainMenu();
+	void lobbyMenu();
+	void nextScene();
 	Client client;
 };

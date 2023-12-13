@@ -45,6 +45,7 @@ void Client::connectToServer(const std::string& ip, int port)
 	}
 
 	std::cout << "Server: " << serverMsg << std::endl;
+	isConnectedToServer = true;
 }
 
 void Client::sendToServer(const std::string& message)
@@ -56,5 +57,11 @@ void Client::closeConnection()
 {
 	sendToServer("disconnect");
 	close(clientSocket);
+	isConnectedToServer = false;
+}
+
+bool Client::isConnected() const
+{
+	return isConnectedToServer;
 }
 

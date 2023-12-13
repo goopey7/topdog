@@ -7,12 +7,10 @@
 
 void Menu::init() {}
 
-void Menu::update(float dt)
-{
-	gui();
-}
+void Menu::update(float dt) { gui(); }
 
-void Menu::draw() {
+void Menu::draw()
+{
 	BeginDrawing();
 	ClearBackground(BLACK);
 	DrawText("Menu", 100, 100, 20, WHITE);

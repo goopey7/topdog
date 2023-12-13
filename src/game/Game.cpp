@@ -10,28 +10,46 @@
 void Game::init()
 {
 	scenes.push(std::make_unique<Menu>([this]() { this->mainMenu(); }));
+	scenes.push(std::make_unique<Menu>([this]() { this->lobbyMenu(); }));
+	scenes.push(std::make_unique<Level>(&scenes));
 	scenes.front()->init();
+
+	GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 }
 
 void Game::update(float dt) { scenes.front()->update(dt); }
 
 void Game::draw() { scenes.front()->draw(); }
 
+void Game::nextScene()
+{
+	scenes.pop();
+	scenes.front()->init();
+}
+
 void Game::mainMenu()
 {
-	GuiSetStyle(DEFAULT, TEXT_SIZE, 20);
 	if (GuiButton({GetRenderWidth() / 2.f - 100.f, GetRenderHeight() / 2.f - 50.f, 200.f, 100.f},
-				  "Play"))
+				  "Connect"))
 	{
 		client.connectToServer("127.0.0.1", 4916);
-		scenes.push(std::make_unique<Level>(&scenes));
-		scenes.pop();
-		scenes.front()->init();
+		nextScene();
+	}
+}
+
+void Game::lobbyMenu()
+{
+	if (GuiButton({GetRenderWidth() / 2.f - 100.f, GetRenderHeight() / 2.f - 50.f, 200.f, 100.f},
+				  "Ready"))
+	{
+		client.toggleReady();
 	}
 }
 
 Game::~Game()
 {
-	client.closeConnection();
+	if (client.isConnected())
+	{
+		client.closeConnection();
+	}
 }
-
