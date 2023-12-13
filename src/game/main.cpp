@@ -11,6 +11,7 @@ int main()
 
 	while (!WindowShouldClose())
 	{
+		SetExitKey(KEY_NULL);
 		game.update(GetFrameTime());
 
 		BeginDrawing();
