@@ -14,7 +14,7 @@ class Client
   public:
 	void connectToServer(const std::string& ip, int port);
 	void sendToServer(const std::string& message);
-	void toggleReady() { isReady = !isReady; }
+	void toggleReady();
 	void closeConnection();
 	bool isConnected() const;
   private:

@@ -1,11 +1,14 @@
 // Sam Collier 2023
-
 #include "Server.h"
 #include <iostream>
+#include <string>
 
 void Server::startServer(int port)
 {
 	serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+	int opt = 1;
+	setsockopt(serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	sockaddr_in serverAddr;
 	serverAddr.sin_family = AF_INET;
@@ -23,74 +26,151 @@ void Server::startServer(int port)
 
 void Server::sendToClients(const std::string& message)
 {
-	for (int client : clients)
+	for (const Client& client : clients)
 	{
-		send(client, message.c_str(), message.size() + 1, 0);
+		send(client.getSocket(), message.c_str(), message.size() + 1, 0);
 	}
 }
 
-void Server::acceptIncomingClient()
+void Server::acceptIncomingClients()
 {
-	sockaddr_in clientAddr;
-	socklen_t clientAddrLen = sizeof(clientAddr);
-	int clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, &clientAddrLen);
-
-	char clientMsg[1024];
-	int result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
-	if (result == -1)
+	while (true)
 	{
-		std::cerr << "Can't receive message from client" << std::endl;
-		return;
+		sockaddr_in clientAddr;
+		socklen_t clientAddrLen = sizeof(clientAddr);
+		int clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, &clientAddrLen);
+
+		char clientMsg[1024];
+		int result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
+		if (result == -1)
+		{
+			std::cerr << "Accpt: Can't receive message from client " << clients.size() << std::endl;
+			continue;
+		}
+
+		std::cout << "Accpt: Client " << clients.size() << ": " << clientMsg << std::endl;
+
+		std::string msg = "Welcome to the server!";
+		result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
+		if (result == -1)
+		{
+			std::cerr << "Accpt: Can't send message to client " << clients.size() << std::endl;
+			continue;
+		}
+
+		result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
+		if (result == -1)
+		{
+			std::cerr << "Accpt: Can't receive message from client " << clients.size() << std::endl;
+			continue;
+		}
+
+		if (std::string(clientMsg) != msg)
+		{
+			msg = "Accpt: Erroneous data received from client";
+			send(clientSocket, msg.c_str(), msg.size() + 1, 0);
+			std::cerr << msg << std::endl;
+			continue;
+		}
+
+		std::cout << "Accpt: Client " << clients.size() << ": " << clientMsg << std::endl;
+		std::cout << "Accpt: Client " << clients.size() << " connected!" << std::endl;
+		msg = "Connection successful";
+		result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
+
+		// Set socket to non-blocking
+		int option = 1;
+		ioctl(clientSocket, FIONBIO, &option);
+
+		clients.emplace_back(clientSocket);
 	}
-
-	std::cout << "Client: " << clientMsg << std::endl;
-
-	std::string msg = "Welcome to the server!";
-	result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
-	if (result == -1)
-	{
-		std::cerr << "Can't send message to client" << std::endl;
-		return;
-	}
-
-	result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
-	if (result == -1)
-	{
-		std::cerr << "Can't receive message from client" << std::endl;
-		return;
-	}
-
-	if (std::string(clientMsg) != msg)
-	{
-		msg = "Erroneous data received from client";
-		send(clientSocket, msg.c_str(), msg.size() + 1, 0);
-		std::cerr << msg << std::endl;
-		return;
-	}
-
-	std::cout << "Client: " << clientMsg << std::endl;
-	std::cout << "Client connected!" << std::endl;
-	msg = "Connection successful!";
-	result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
-
-	clients.push_back(clientSocket);
 }
 
-void Server::listenForClientMsg()
+void Server::handleClientMsgs()
 {
-	char clientMsg[1024];
-	int result = recv(clients[0], clientMsg, sizeof(clientMsg), 0);
-	if (result == -1)
+	// TODO - surely there's a more elegant way to wait for clients
+	while (clients.empty())
 	{
-		std::cerr << "Can't receive message from client" << std::endl;
-		return;
 	}
 
-	if (std::string(clientMsg) == "disconnect")
+	fd_set readSet;
+	int maxFd = 0;
+
+	while (true)
 	{
-		std::cout << "Client disconnected!" << std::endl;
-		return;
+		FD_ZERO(&readSet);
+
+		for (int i = 0; i < clients.size(); i++)
+		{
+			int clientSocket = clients[i].getSocket();
+			FD_SET(clientSocket, &readSet);
+			maxFd = std::max(maxFd, clientSocket);
+		}
+
+		int result = select(maxFd + 1, &readSet, NULL, NULL, NULL);
+		if (result == -1)
+		{
+			std::cerr << "Can't select socket" << std::endl;
+			continue;
+		}
+
+		for (int i = 0; i < clients.size(); i++)
+		{
+			int clientSocket = clients[i].getSocket();
+			if (FD_ISSET(clientSocket, &readSet))
+			{
+				int bytesAvailable;
+				ioctl(clientSocket, FIONREAD, &bytesAvailable);
+
+				// would block
+				if (bytesAvailable <= 0)
+				{
+					continue;
+				}
+
+				char clientMsg[1024];
+				result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
+				if (result == -1)
+				{
+					std::cerr << "Can't receive message from client" << std::endl;
+					continue;
+				}
+				std::cout << "Client " << i << ": " << clientMsg << std::endl;
+				processMsg(clientMsg, i);
+			}
+		}
 	}
-	std::cout << "Client: " << clientMsg << std::endl;
 }
 
+bool Server::clientsAreReady() const
+{
+	for (const Client& client : clients)
+	{
+		if (!client.isReady())
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+void Server::processMsg(const char* msg, int index)
+{
+	switch (msgMap.at(msg))
+	{
+	case ClientCommand::DISCONNECT:
+		std::cout << "Client " << index << " disconnected!" << std::endl;
+		clients.erase(clients.begin() + index);
+		break;
+	case ClientCommand::READY:
+		std::cout << "Client " << index << " is ready!" << std::endl;
+		clients[index].setReady(true);
+		break;
+	case ClientCommand::NOT_READY:
+		std::cout << "Client " << index << " is not ready!" << std::endl;
+		clients[index].setReady(false);
+		break;
+	default:
+		break;
+	}
+}

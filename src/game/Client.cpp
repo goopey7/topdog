@@ -27,7 +27,7 @@ void Client::connectToServer(const std::string& ip, int port)
 		return;
 	}
 
-	sendToServer("Hello from client 0!");
+	sendToServer("connect");
 	char serverMsg[1024];
 	result = recv(clientSocket, serverMsg, sizeof(serverMsg), 0);
 	if (result == -1)
@@ -63,5 +63,11 @@ void Client::closeConnection()
 bool Client::isConnected() const
 {
 	return isConnectedToServer;
+}
+
+void Client::toggleReady()
+{
+	isReady = !isReady;
+	sendToServer(isReady ? "ready" : "not_ready");
 }
 
