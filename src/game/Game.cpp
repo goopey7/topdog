@@ -74,7 +74,15 @@ void Game::lobbyMenu()
 					 ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse |
 					 ImGuiWindowFlags_NoCollapse);
 
-	ImGui::Text("Player Name: %s", client.getName().c_str());
+	if (client.isReadyToStart())
+	{
+		ImGui::TextColored(ImVec4(0, 1, 0, 1), "%s", client.getName().c_str());
+	}
+	else
+	{
+		ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", client.getName().c_str());
+	}
+
 	if (ImGui::Button("Toggle Ready"))
 	{
 		client.toggleReady();
@@ -140,6 +148,17 @@ void Game::listenToServer()
 					if (c.getName() == name)
 					{
 						c.setReady(false);
+					}
+				}
+			}
+			else if (serverMsg.find("client_disconnected:") != std::string::npos)
+			{
+				std::string name = serverMsg.substr(20);
+				for (int i = 0; i < otherClients.size(); i++)
+				{
+					if (otherClients[i].getName() == name)
+					{
+						otherClients.erase(otherClients.begin() + i);
 					}
 				}
 			}

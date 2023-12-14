@@ -124,6 +124,11 @@ void Server::handleClientMsgs()
 
 	while (true)
 	{
+		if (clients.empty())
+		{
+			continue;
+		}
+
 		FD_ZERO(&readSet);
 
 		for (int i = 0; i < clients.size(); i++)
@@ -133,10 +138,9 @@ void Server::handleClientMsgs()
 			maxFd = std::max(maxFd, clientSocket);
 		}
 
-		// we want to poll the sockets, not block
 		struct timeval timeout;
 		timeout.tv_sec = 0;
-		timeout.tv_usec = 0;
+		timeout.tv_usec = 100000;
 		int result = select(maxFd + 1, &readSet, NULL, NULL, &timeout);
 		if (result == -1)
 		{
