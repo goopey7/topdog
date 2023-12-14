@@ -37,3 +37,8 @@ void Level::transitionToMainMenu()
 	scenes->pop();
 }
 
+Level::Level(std::queue<std::unique_ptr<Scene>>* scenes, Client* client, const std::vector<Client>* clients)
+	: scenes(scenes), client(client), clients(clients)
+{
+}
+

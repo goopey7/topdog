@@ -14,7 +14,7 @@ void Game::init()
 {
 	scenes.push(std::make_unique<Menu>([this]() { this->mainMenu(); }));
 	scenes.push(std::make_unique<Menu>([this]() { this->lobbyMenu(); }));
-	scenes.push(std::make_unique<Level>(&scenes));
+	scenes.push(std::make_unique<Level>(&scenes, &client, &otherClients));
 	scenes.front()->init();
 }
 
@@ -60,6 +60,24 @@ void Game::mainMenu()
 
 void Game::lobbyMenu()
 {
+	if (client.isConnected() && client.isReadyToStart())
+	{
+		bool allClientsReady = true;
+		for (auto& c : otherClients)
+		{
+			if (!c.isReadyToStart())
+			{
+				allClientsReady = false;
+				break;
+			}
+		}
+
+		if (allClientsReady)
+		{
+			nextScene();
+		}
+	}
+
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
 
