@@ -15,9 +15,9 @@
 
 enum class ClientCommand
 {
-	DISCONNECT,
-	READY,
-	NOT_READY,
+	DISCONNECT = 0,
+	READY = 1,
+	NOT_READY = 2,
 };
 
 class Server
@@ -31,15 +31,6 @@ class Server
 	private:
 		int serverSocket;
 		std::vector<Client> clients;
-		void processMsg(const char* msg, int index);
-		std::map<std::string, ClientCommand> msgMap =
-		{
-			{"DISCONNECT", ClientCommand::DISCONNECT},
-			{"disconnect", ClientCommand::DISCONNECT},
-			{"READY", ClientCommand::READY},
-			{"ready", ClientCommand::READY},
-			{"NOT_READY", ClientCommand::NOT_READY},
-			{"not_ready", ClientCommand::NOT_READY},
-		};
+		void processMsg(const ClientCommand msg, int index);
 };
 

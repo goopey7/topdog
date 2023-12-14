@@ -172,7 +172,7 @@ void Server::handleClientMsgs()
 					continue;
 				}
 				std::cout << "Client " << i << ": " << clientMsg << std::endl;
-				processMsg(clientMsg, i);
+				processMsg((ClientCommand)std::stoi(clientMsg), i);
 			}
 		}
 	}
@@ -190,9 +190,9 @@ bool Server::clientsAreReady() const
 	return true;
 }
 
-void Server::processMsg(const char* msg, int index)
+void Server::processMsg(const ClientCommand msg, int index)
 {
-	switch (msgMap.at(msg))
+	switch (msg)
 	{
 	case ClientCommand::DISCONNECT:
 		std::cout << "Client " << index << " disconnected!" << std::endl;

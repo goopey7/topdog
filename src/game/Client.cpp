@@ -105,7 +105,7 @@ void Client::sendToServer(const std::string& message)
 
 void Client::closeConnection()
 {
-	sendToServer("disconnect");
+	sendToServer("0");
 	close(clientSocket);
 	isConnectedToServer = false;
 }
@@ -115,7 +115,7 @@ bool Client::isConnected() const { return isConnectedToServer; }
 void Client::toggleReady()
 {
 	isReady = !isReady;
-	sendToServer(isReady ? "ready" : "not_ready");
+	sendToServer(isReady ? "1" : "2");
 }
 
 std::string Client::listenToServer()
