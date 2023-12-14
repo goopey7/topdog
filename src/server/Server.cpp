@@ -88,11 +88,6 @@ void Server::acceptIncomingClients()
 
 void Server::handleClientMsgs()
 {
-	// TODO - surely there's a more elegant way to wait for clients
-	while (clients.empty())
-	{
-	}
-
 	fd_set readSet;
 	int maxFd = 0;
 
@@ -107,6 +102,7 @@ void Server::handleClientMsgs()
 			maxFd = std::max(maxFd, clientSocket);
 		}
 
+		// we want to poll the sockets, not block
 		struct timeval timeout;
 		timeout.tv_sec = 0;
 		timeout.tv_usec = 0;
