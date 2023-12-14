@@ -45,7 +45,22 @@ void Client::connectToServer(const std::string& ip, int port)
 	}
 
 	std::cout << "Server: " << serverMsg << std::endl;
-	isConnectedToServer = true;
+	if (std::string(serverMsg) == "get_lobby_info")
+	{
+		sendToServer(name);
+		result = recv(clientSocket, serverMsg, sizeof(serverMsg), 0);
+		if (result == -1)
+		{
+			std::cerr << "Can't receive message from server";
+			return;
+		}
+		std::cout << "Server: " << serverMsg << std::endl;
+		isConnectedToServer = true;
+	}
+	else
+	{
+		std::cerr << "Server Unhappy" << std::endl;
+	}
 }
 
 void Client::sendToServer(const std::string& message)
@@ -60,14 +75,40 @@ void Client::closeConnection()
 	isConnectedToServer = false;
 }
 
-bool Client::isConnected() const
-{
-	return isConnectedToServer;
-}
+bool Client::isConnected() const { return isConnectedToServer; }
 
 void Client::toggleReady()
 {
 	isReady = !isReady;
 	sendToServer(isReady ? "ready" : "not_ready");
+}
+
+std::string Client::listenToServer()
+{
+	std::string serverMsg;
+	char msg[1024];
+	int result = recv(clientSocket, msg, sizeof(msg), 0);
+	if (result == -1)
+	{
+		std::cerr << "Can't receive message from server";
+		return serverMsg;
+	}
+	serverMsg = msg;
+	return serverMsg;
+}
+
+void Client::init(const std::string& name)
+{
+	this->name = name;
+}
+
+const std::string& Client::getName() const
+{
+	return name;
+}
+
+bool Client::isReadyToStart() const
+{
+	return isReady;
 }
 

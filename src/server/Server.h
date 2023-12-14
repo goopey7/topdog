@@ -26,7 +26,7 @@ class Server
 		void startServer(int port);
 		void acceptIncomingClients();
 		void handleClientMsgs();
-		void sendToClients(const std::string& message);
+		void sendToClients(const std::string& message, int indexToSkip);
 		bool clientsAreReady() const;
 	private:
 		int serverSocket;

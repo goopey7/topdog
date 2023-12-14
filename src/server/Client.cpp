@@ -2,20 +2,18 @@
 
 #include "Client.h"
 
-Client::Client(int socket) : socket(socket) {}
+Client::Client(int socket, const std::string& name) : socket(socket), name(name) {}
 
-int Client::getSocket() const
-{
-	return socket;
-}
+int Client::getSocket() const { return socket; }
 
-bool Client::isReady() const
-{
-	return bIsReady;
-}
+bool Client::isReady() const { return bIsReady; }
 
-void Client::setReady(bool ready)
+void Client::setReady(bool ready) { bIsReady = ready; }
+
+const std::string& Client::getName() const { return name; }
+
+void Client::sendMsg(const std::string& msg) const
 {
-	bIsReady = ready;
+	send(socket, msg.c_str(), msg.size() + 1, 0);
 }
 

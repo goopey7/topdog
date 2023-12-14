@@ -11,9 +11,11 @@ add_executable(${PROJECT_NAME} ${SRC_FILES})
 
 find_package(RAYLIB REQUIRED)
 include_directories(${RAYLIB_INCLUDE_DIR})
-include_directories("libs/raygui/")
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${RAYLIB_LIBRARY})
+include_directories("libs/imgui")
+add_subdirectory("libs/imgui")
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${RAYLIB_LIBRARY} imgui_lib)
 
 project(server)
 set(CMAKE_CXX_STANDARD 20)

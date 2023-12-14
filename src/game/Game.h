@@ -5,6 +5,7 @@
 #include "Client.h"
 #include <memory>
 #include <queue>
+#include <thread>
 
 class Game
 {
@@ -16,10 +17,13 @@ class Game
 	void init();
 	void update(float dt);
 	void draw();
+	void listenToServer();
   private:
 	std::queue<std::unique_ptr<Scene>> scenes;
 	void mainMenu();
 	void lobbyMenu();
 	void nextScene();
 	Client client;
+	std::vector<Client> otherClients;
+	std::string nameInput;
 };

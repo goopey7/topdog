@@ -24,11 +24,15 @@ void Server::startServer(int port)
 	listen(serverSocket, 5);
 }
 
-void Server::sendToClients(const std::string& message)
+void Server::sendToClients(const std::string& message, int indexToSkip)
 {
-	for (const Client& client : clients)
+	for (int i=0; i < clients.size(); i++)
 	{
-		send(client.getSocket(), message.c_str(), message.size() + 1, 0);
+		if (i == indexToSkip)
+		{
+			continue;
+		}
+		clients[i].sendMsg(message);
 	}
 }
 
@@ -73,16 +77,27 @@ void Server::acceptIncomingClients()
 			continue;
 		}
 
-		std::cout << "Accpt: Client " << clients.size() << ": " << clientMsg << std::endl;
-		std::cout << "Accpt: Client " << clients.size() << " connected!" << std::endl;
-		msg = "Connection successful";
+		msg = "get_lobby_info";
+		result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
+		result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
+		if (result == -1)
+		{
+			std::cerr << "Accpt: Can't receive message from client " << clients.size() << std::endl;
+			continue;
+		}
+
+		msg = "success";
 		result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
 
 		// Set socket to non-blocking
 		int option = 1;
 		ioctl(clientSocket, FIONBIO, &option);
 
-		clients.emplace_back(clientSocket);
+		clients.emplace_back(clientSocket, std::string(clientMsg));
+
+		std::cout << "Accpt: Client " << clients.size() << ": " << clientMsg << std::endl;
+		std::cout << "Accpt: Client " << clients.size() << " connected!" << std::endl;
+		sendToClients("new_client:" + std::string(clientMsg), clients.size() - 1);
 	}
 }
 
@@ -160,14 +175,17 @@ void Server::processMsg(const char* msg, int index)
 	case ClientCommand::DISCONNECT:
 		std::cout << "Client " << index << " disconnected!" << std::endl;
 		clients.erase(clients.begin() + index);
+		sendToClients("client_disconnected:" + clients[index].getName(), index);
 		break;
 	case ClientCommand::READY:
 		std::cout << "Client " << index << " is ready!" << std::endl;
 		clients[index].setReady(true);
+		sendToClients("client_ready:" + clients[index].getName(), index);
 		break;
 	case ClientCommand::NOT_READY:
 		std::cout << "Client " << index << " is not ready!" << std::endl;
 		clients[index].setReady(false);
+		sendToClients("client_not_ready:" + clients[index].getName(), index);
 		break;
 	default:
 		break;
