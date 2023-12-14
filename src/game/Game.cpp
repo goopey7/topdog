@@ -1,11 +1,13 @@
 // Sam Collier 2023
 
 #include "Game.h"
+#include "Client.h"
 #include "Level.h"
 #include "Menu.h"
 #include <imgui.h>
 #include <imgui_stdlib.h>
 
+#include <iostream>
 #include <raylib.h>
 
 void Game::init()
@@ -45,7 +47,14 @@ void Game::mainMenu()
 		if (ImGui::Button("Connect"))
 		{
 			client.init(nameInput);
-			client.connectToServer("127.0.0.1", 4916);
+			const std::vector<std::string> lobbyInfo = client.connectToServer("127.0.0.1", 4916);
+			for (auto& s : lobbyInfo)
+			{
+				Client newClient;
+				newClient.init(s);
+				otherClients.push_back(newClient);
+				std::cout << "Added client " << s << std::endl;
+			}
 			nextScene();
 		}
 	}

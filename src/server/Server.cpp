@@ -77,7 +77,24 @@ void Server::acceptIncomingClients()
 			continue;
 		}
 
-		msg = "get_lobby_info";
+		msg = "get_lobby_info:";
+		for (int i = 0; i < clients.size(); i++)
+		{
+			msg += clients[i].getName();
+			if (i != clients.size() - 1)
+			{
+				msg += ",";
+			}
+		}
+		if (clients.size() > 0)
+		{
+			msg += ",";
+		}
+		else
+		{
+			msg += ";";
+		}
+
 		result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
 		result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
 		if (result == -1)

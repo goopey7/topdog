@@ -11,7 +11,7 @@
 - client must send that message back
 - if server is happy then client will receive a welcome message
 */
-void Client::connectToServer(const std::string& ip, int port)
+const std::vector<std::string> Client::connectToServer(const std::string& ip, int port)
 {
 	clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -24,7 +24,7 @@ void Client::connectToServer(const std::string& ip, int port)
 	if (result == -1)
 	{
 		std::cerr << "Can't connect to server";
-		return;
+		return {};
 	}
 
 	sendToServer("connect");
@@ -33,7 +33,7 @@ void Client::connectToServer(const std::string& ip, int port)
 	if (result == -1)
 	{
 		std::cerr << "Can't receive message from server";
-		return;
+		return {};
 	}
 	sendToServer(serverMsg);
 
@@ -41,26 +41,51 @@ void Client::connectToServer(const std::string& ip, int port)
 	if (result == -1)
 	{
 		std::cerr << "Can't receive message from server";
-		return;
+		return {};
 	}
 
 	std::cout << "Server: " << serverMsg << std::endl;
-	if (std::string(serverMsg) == "get_lobby_info")
+	if (std::string(serverMsg).find("get_lobby_info:") != std::string::npos)
 	{
 		sendToServer(name);
+		std::string serverMsgStr = serverMsg;
+		std::vector<std::string> lobbyInfo;
+
+		// split the message into a vector by commas
+		if (serverMsgStr.back() == ',')
+		{
+			std::string delimiter = ",";
+			size_t pos = 0;
+			std::string token;
+			serverMsgStr.erase(0, 15);
+			while ((pos = serverMsgStr.find(delimiter)) != std::string::npos)
+			{
+				token = serverMsgStr.substr(0, pos);
+				lobbyInfo.push_back(token);
+				serverMsgStr.erase(0, pos + delimiter.length());
+			}
+		}
+		else
+		{
+			lobbyInfo = {};
+		}
+
 		result = recv(clientSocket, serverMsg, sizeof(serverMsg), 0);
 		if (result == -1)
 		{
 			std::cerr << "Can't receive message from server";
-			return;
+			return {};
 		}
 		std::cout << "Server: " << serverMsg << std::endl;
 		isConnectedToServer = true;
+
+		return lobbyInfo;
 	}
 	else
 	{
 		std::cerr << "Server Unhappy" << std::endl;
 	}
+	return {};
 }
 
 void Client::sendToServer(const std::string& message)
