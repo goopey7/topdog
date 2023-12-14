@@ -137,3 +137,8 @@ bool Client::isReadyToStart() const
 	return isReady;
 }
 
+void Client::setReady(bool ready)
+{
+	this->isReady = ready;
+}
+

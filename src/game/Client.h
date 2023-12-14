@@ -19,6 +19,7 @@ class Client
 	const std::string& getName() const;
 	std::string listenToServer();
 	void toggleReady();
+	void setReady(bool ready);
 	void closeConnection();
 	bool isConnected() const;
 	bool isReadyToStart() const;

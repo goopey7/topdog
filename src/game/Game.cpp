@@ -80,15 +80,21 @@ void Game::lobbyMenu()
 		client.toggleReady();
 	}
 
-	ImGui::Text("Players");
+	ImGui::Text("Other Players");
 	ImGui::Separator();
 
 	for (auto& c : otherClients)
 	{
 		std::string name = c.getName();
 		bool isReady = c.isReadyToStart();
-
-		ImGui::Text("%s", name.c_str());
+		if (isReady)
+		{
+			ImGui::TextColored(ImVec4(0, 1, 0, 1), "%s", name.c_str());
+		}
+		else
+		{
+			ImGui::TextColored(ImVec4(1, 0, 0, 1), "%s", name.c_str());
+		}
 	}
 
 	ImGui::End();
@@ -98,10 +104,7 @@ void Game::lobbyMenu()
 
 Game::~Game()
 {
-	if (client.isConnected())
-	{
-		client.closeConnection();
-	}
+	shutdown();
 }
 
 void Game::listenToServer()
@@ -118,6 +121,37 @@ void Game::listenToServer()
 				newClient.init(name);
 				otherClients.push_back(newClient);
 			}
+			else if (serverMsg.find("client_ready:") != std::string::npos)
+			{
+				std::string name = serverMsg.substr(13);
+				for (auto& c : otherClients)
+				{
+					if (c.getName() == name)
+					{
+						c.setReady(true);
+					}
+				}
+			}
+			else if (serverMsg.find("client_not_ready:") != std::string::npos)
+			{
+				std::string name = serverMsg.substr(17);
+				for (auto& c : otherClients)
+				{
+					if (c.getName() == name)
+					{
+						c.setReady(false);
+					}
+				}
+			}
 		}
 	}
 }
+
+void Game::shutdown()
+{
+	if (client.isConnected())
+	{
+		client.closeConnection();
+	}
+}
+

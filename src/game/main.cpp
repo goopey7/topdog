@@ -25,6 +25,7 @@ int main()
 		EndDrawing();
 	}
 
+	game.shutdown();
 	rlImGuiShutdown();
 	CloseWindow();
 }

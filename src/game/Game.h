@@ -18,6 +18,7 @@ class Game
 	void update(float dt);
 	void draw();
 	void listenToServer();
+	void shutdown();
   private:
 	std::queue<std::unique_ptr<Scene>> scenes;
 	void mainMenu();
