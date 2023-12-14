@@ -5,7 +5,12 @@
 void Level::init()
 {
 	ship.init(true);
-	enemy.init(false);
+	for (const Client& c : *otherClients)
+	{
+		Ship otherShip(c.getName());
+		otherShip.init(false);
+		otherShips.push_back(otherShip);
+	}
 }
 
 void Level::update(float dt)
@@ -13,22 +18,49 @@ void Level::update(float dt)
 	// check collisions
 	for (const Bullet& bullet : ship.getBullets())
 	{
-		if (CheckCollisionCircleRec(bullet.getPosition(), bullet.getSize(),
-									enemy.getCollisionRect()))
+		for (Ship& otherShip : otherShips)
 		{
-			enemy.onCollision(bullet);
+			if (CheckCollisionCircleRec(bullet.getPosition(), bullet.getSize(),
+										otherShip.getCollisionRect()))
+			{
+				otherShip.onCollision(bullet);
+			}
 		}
 	}
-	enemy.update(dt);
+	for (Ship& otherShip : otherShips)
+	{
+		otherShip.update(dt);
+	}
 	ship.update(dt);
+
+	if (otherShips.size() != otherClients->size())
+	{
+		for (Ship& s : otherShips)
+		{
+			bool found = false;
+			for (const Client& c : *otherClients)
+			{
+				if (s.getName() == c.getName())
+				{
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+			{
+				otherShips.erase(otherShips.begin());
+				break;
+			}
+		}
+	}
 }
 
 void Level::draw()
 {
-	// DrawFPS(10, 10);
-	//  draw dt
-	//  DrawText(std::to_string(GetFrameTime()).c_str(), 10, 30, 20, WHITE);
-	enemy.draw();
+	for (Ship& otherShip : otherShips)
+	{
+		otherShip.draw();
+	}
 	ship.draw();
 }
 
@@ -38,7 +70,7 @@ void Level::transitionToMainMenu()
 }
 
 Level::Level(std::queue<std::unique_ptr<Scene>>* scenes, Client* client, const std::vector<Client>* clients)
-	: scenes(scenes), client(client), clients(clients)
+	: scenes(scenes), client(client), otherClients(clients), ship(Ship(client->getName()))
 {
 }
 

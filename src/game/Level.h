@@ -22,8 +22,8 @@ class Level : public Scene
 
   private:
 	Ship ship;
-	Ship enemy;
+	std::vector<Ship> otherShips;
 	std::queue<std::unique_ptr<Scene>>* scenes;
 	Client* client;
-	const std::vector<Client>* clients;
+	const std::vector<Client>* otherClients;
 };

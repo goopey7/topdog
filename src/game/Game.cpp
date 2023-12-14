@@ -60,7 +60,7 @@ void Game::mainMenu()
 
 void Game::lobbyMenu()
 {
-	if (client.isConnected() && client.isReadyToStart())
+	if (client.isConnected() && client.isReadyToStart() && !otherClients.empty())
 	{
 		bool allClientsReady = true;
 		for (auto& c : otherClients)
