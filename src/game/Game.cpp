@@ -47,13 +47,10 @@ void Game::mainMenu()
 		if (ImGui::Button("Connect"))
 		{
 			client.init(nameInput);
-			const std::vector<std::string> lobbyInfo = client.connectToServer("127.0.0.1", 4916);
-			for (auto& s : lobbyInfo)
+			otherClients = client.connectToServer("127.0.0.1", 4916);
+			for (auto& s : otherClients)
 			{
-				Client newClient;
-				newClient.init(s);
-				otherClients.push_back(newClient);
-				std::cout << "Added client " << s << std::endl;
+				std::cout << "Added client " << s.getName() << std::endl;
 			}
 			nextScene();
 		}

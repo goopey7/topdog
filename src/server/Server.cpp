@@ -81,6 +81,8 @@ void Server::acceptIncomingClients()
 		for (int i = 0; i < clients.size(); i++)
 		{
 			msg += clients[i].getName();
+			msg += ":";
+			msg += clients[i].isReady() ? "1" : "0";
 			if (i != clients.size() - 1)
 			{
 				msg += ",";

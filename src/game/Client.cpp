@@ -11,7 +11,7 @@
 - client must send that message back
 - if server is happy then client will receive a welcome message
 */
-const std::vector<std::string> Client::connectToServer(const std::string& ip, int port)
+const std::vector<Client> Client::connectToServer(const std::string& ip, int port)
 {
 	clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -57,7 +57,7 @@ const std::vector<std::string> Client::connectToServer(const std::string& ip, in
 			std::string delimiter = ",";
 			size_t pos = 0;
 			std::string token;
-			serverMsgStr.erase(0, 15);
+			serverMsgStr.erase(0, 15); // remove "get_lobby_info:"
 			while ((pos = serverMsgStr.find(delimiter)) != std::string::npos)
 			{
 				token = serverMsgStr.substr(0, pos);
@@ -79,7 +79,17 @@ const std::vector<std::string> Client::connectToServer(const std::string& ip, in
 		std::cout << "Server: " << serverMsg << std::endl;
 		isConnectedToServer = true;
 
-		return lobbyInfo;
+		std::vector<Client> clients;
+		for (int i = 0; i < lobbyInfo.size(); i++)
+		{
+			Client client;
+			std::string name = lobbyInfo[i].substr(0, lobbyInfo[i].find(":"));
+			bool ready = lobbyInfo[i].substr(lobbyInfo[i].find(":") + 1) == "1";
+			client.init(name);
+			client.setReady(ready);
+			clients.push_back(client);
+		}
+		return clients;
 	}
 	else
 	{
