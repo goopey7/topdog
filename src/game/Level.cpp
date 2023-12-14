@@ -4,11 +4,11 @@
 
 void Level::init()
 {
-	ship.init(true);
+	ship.init(true, client->getName());
 	for (const Client& c : *otherClients)
 	{
-		Ship otherShip(c.getName());
-		otherShip.init(false);
+		Ship otherShip;
+		otherShip.init(false, c.getName());
 		otherShips.push_back(otherShip);
 	}
 }
@@ -27,12 +27,15 @@ void Level::update(float dt)
 			}
 		}
 	}
+
+	// update all ships
 	for (Ship& otherShip : otherShips)
 	{
 		otherShip.update(dt);
 	}
 	ship.update(dt);
 
+	// erase disconnected ships
 	if (otherShips.size() != otherClients->size())
 	{
 		for (Ship& s : otherShips)
@@ -70,7 +73,7 @@ void Level::transitionToMainMenu()
 }
 
 Level::Level(std::queue<std::unique_ptr<Scene>>* scenes, Client* client, const std::vector<Client>* clients)
-	: scenes(scenes), client(client), otherClients(clients), ship(Ship(client->getName()))
+	: scenes(scenes), client(client), otherClients(clients)
 {
 }
 

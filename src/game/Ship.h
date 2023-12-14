@@ -10,8 +10,7 @@
 class Ship
 {
 	public:
-		Ship(const std::string& name) : name(name) {}
-		void init(bool playerControlled);
+		void init(bool playerControlled, const std::string& name);
 		void update(float dt);
 		void draw();
 		void onCollision(const Bullet& other);

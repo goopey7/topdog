@@ -3,7 +3,7 @@
 #include <cmath>
 #include <raylib.h>
 
-void Ship::init(bool playerControlled)
+void Ship::init(bool playerControlled, const std::string& name)
 {
 	textures.push_back(LoadTexture("res/sprites/shipIdle.png"));
 	textures.push_back(LoadTexture("res/sprites/shipActive.png"));
@@ -11,6 +11,7 @@ void Ship::init(bool playerControlled)
 	textures.push_back(LoadTexture("res/sprites/shipActiveTilt.png"));
 	bullets.reserve(20);
 	this->playerControlled = playerControlled;
+	this->name = name;
 }
 
 void Ship::handleInput(float dt)
@@ -113,6 +114,8 @@ void Ship::draw()
 			 (float)textures[animationIndex].height},
 			{(float)textures[animationIndex].width / 2, (float)textures[animationIndex].height / 2},
 			rotation, WHITE);
+		DrawText(name.c_str(), position.x - MeasureText(name.c_str(), 20) / 2.f, position.y + 50, 20,
+				 WHITE);
 	}
 
 	for (const Bullet& bullet : bullets)
