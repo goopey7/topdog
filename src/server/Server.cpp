@@ -93,10 +93,9 @@ void Server::acceptIncomingClients()
 		int option = 1;
 		ioctl(clientSocket, FIONBIO, &option);
 
-		clients.emplace_back(clientSocket, std::string(clientMsg));
-
 		std::cout << "Accpt: Client " << clients.size() << ": " << clientMsg << std::endl;
 		std::cout << "Accpt: Client " << clients.size() << " connected!" << std::endl;
+		clients.emplace_back(clientSocket, std::string(clientMsg));
 		sendToClients("new_client:" + std::string(clientMsg), clients.size() - 1);
 	}
 }
