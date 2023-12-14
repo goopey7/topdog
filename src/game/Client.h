@@ -10,6 +10,15 @@
 #include <string>
 #include <vector>
 
+enum class ClientCommand
+{
+	DISCONNECT = 0,
+	READY = 1,
+	NOT_READY = 2,
+};
+
+#define cmd(x) std::to_string((int)ClientCommand::x)
+
 class Client
 {
   public:
