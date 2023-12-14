@@ -107,7 +107,10 @@ void Server::handleClientMsgs()
 			maxFd = std::max(maxFd, clientSocket);
 		}
 
-		int result = select(maxFd + 1, &readSet, NULL, NULL, NULL);
+		struct timeval timeout;
+		timeout.tv_sec = 0;
+		timeout.tv_usec = 0;
+		int result = select(maxFd + 1, &readSet, NULL, NULL, &timeout);
 		if (result == -1)
 		{
 			std::cerr << "Can't select socket" << std::endl;
