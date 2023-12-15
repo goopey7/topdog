@@ -1,7 +1,6 @@
 //Sam Collier 2023
 #pragma once
 
-#include "Client.h"
 #ifndef WIN32_
 	#include <arpa/inet.h>
 	#include <sys/socket.h>
@@ -13,12 +12,8 @@
 #include <vector>
 #include <map>
 
-enum class ClientCommand
-{
-	DISCONNECT = 0,
-	READY = 1,
-	NOT_READY = 2,
-};
+#include "Client.h"
+#include "ClientCommands.h"
 
 class Server
 {

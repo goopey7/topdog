@@ -3,6 +3,8 @@ project(topdog)
 
 set(CMAKE_CXX_STANDARD 20)
 
+include_directories("src/common/")
+
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 file(GLOB_RECURSE SRC_FILES "src/game/*.cpp" "src/game/*.h")
