@@ -221,9 +221,10 @@ void Server::receiveAndHandleMsgs()
 				continue;
 			}
 			std::cout << "Client " << i << ": " << clientMsg << std::endl;
-			int cmdIndex = std::stoi(clientMsg);
-			//using type = std::tuple_element_t<cmdIndex, ClientCommandTypes>;
-			//processMsg(, i);
+			std::cout << "Client " << i << " sent command " << std::string(clientMsg) << std::endl;
+			int cmdIndex = std::stoi(std::string(clientMsg));
+			// TODO get client command from index
+			//processMsg((ClientCommand)std::stoi(clientMsg), i);
 		}
 	}
 }

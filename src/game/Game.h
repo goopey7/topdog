@@ -24,6 +24,7 @@ class Game
 	void mainMenu();
 	void lobbyMenu();
 	void nextScene();
+	void connect();
 	Client client;
 	std::vector<Client> otherClients;
 	std::string nameInput;

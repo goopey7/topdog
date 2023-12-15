@@ -17,6 +17,7 @@ class Client
   public:
 	void init(const std::string& name);
 	const std::vector<Client> connectToServer(const std::string& ip, int port);
+	void sendToServer(const ClientCommand& command);
 	void sendToServer(const std::string& message);
 	const std::string& getName() const;
 	std::string listenToServer();

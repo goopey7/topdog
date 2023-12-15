@@ -98,6 +98,13 @@ const std::vector<Client> Client::connectToServer(const std::string& ip, int por
 	return {};
 }
 
+void Client::sendToServer(const ClientCommand& command)
+{
+	std::string message = STRINGIFY_COMMAND(command);
+	std::cout << "Client: " << message << std::endl;
+	send(clientSocket, message.c_str(), message.size() + 1, 0);
+}
+
 void Client::sendToServer(const std::string& message)
 {
 	send(clientSocket, message.c_str(), message.size() + 1, 0);
@@ -105,7 +112,7 @@ void Client::sendToServer(const std::string& message)
 
 void Client::closeConnection()
 {
-	sendToServer(cmd(Disconnect()));
+	sendToServer(Disconnect());
 	close(clientSocket);
 	isConnectedToServer = false;
 }
@@ -115,7 +122,14 @@ bool Client::isConnected() const { return isConnectedToServer; }
 void Client::toggleReady()
 {
 	isReady = !isReady;
-	sendToServer(isReady ? cmd(Ready()) : cmd(NotReady()));
+	if (isReady)
+	{
+		sendToServer(Ready());
+	}
+	else
+	{
+		sendToServer(NotReady());
+	}
 }
 
 std::string Client::listenToServer()

@@ -28,6 +28,17 @@ void Game::nextScene()
 	scenes.front()->init();
 }
 
+void Game::connect()
+{
+	client.init(nameInput);
+	otherClients = client.connectToServer("127.0.0.1", 4916);
+	for (auto& s : otherClients)
+	{
+		std::cout << "Added client " << s.getName() << std::endl;
+	}
+	nextScene();
+}
+
 void Game::mainMenu()
 {
 	ImGui::SetNextWindowPos(
@@ -42,17 +53,15 @@ void Game::mainMenu()
 
 		ImGui::PushItemWidth(200.0f);
 		ImGui::InputText("Name", &nameInput);
+		if (ImGui::GetIO().KeysDown[ImGuiKey_Enter])
+		{
+			this->connect();
+		}
 		ImGui::PopItemWidth();
 
 		if (ImGui::Button("Connect"))
 		{
-			client.init(nameInput);
-			otherClients = client.connectToServer("127.0.0.1", 4916);
-			for (auto& s : otherClients)
-			{
-				std::cout << "Added client " << s.getName() << std::endl;
-			}
-			nextScene();
+			this->connect();
 		}
 	}
 	ImGui::End();
@@ -112,10 +121,7 @@ void Game::lobbyMenu()
 	ImGui::PopStyleVar(2);
 }
 
-Game::~Game()
-{
-	shutdown();
-}
+Game::~Game() { shutdown(); }
 
 void Game::listenToServer()
 {
@@ -179,4 +185,3 @@ void Game::shutdown()
 		client.closeConnection();
 	}
 }
-

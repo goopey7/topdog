@@ -38,35 +38,23 @@ struct UpdateRotation
 	float angle = 0;
 };
 
-#define COMMANDS Disconnect, Ready, NotReady, UpdatePosition, UpdateVelocity, UpdateRotation
+#define COMMANDS                                                                                   \
+	Disconnect, Ready, NotReady, UpdatePosition, UpdateVelocity, UpdateRotation
 
-using ClientCommand =
-	std::variant<COMMANDS>;
+using ClientCommand = std::variant<COMMANDS>;
 
-using ClientCommandTypes =
-	std::tuple<COMMANDS>;
+#define STRINGIFY_COMMAND(cmd) [&]() { \
+    std::stringstream ss; \
+    std::visit([&](auto&& arg) { \
+        ss << arg.id; \
+        using T = std::decay_t<decltype(arg)>; \
+        if constexpr(std::is_same_v<T, UpdatePosition> || std::is_same_v<T, UpdateVelocity>) { \
+            ss << ":" << arg.x << ":" << arg.y; \
+        } \
+        else if constexpr(std::is_same_v<T, UpdateRotation>) { \
+            ss << ":" << arg.angle; \
+        } \
+    }, cmd); \
+    return ss.str(); \
+}()
 
-inline std::string cmd(const ClientCommand& cmd)
-{
-	std::stringstream ss;
-
-	std::visit(
-		[&](const auto& c)
-		{
-			using T = std::decay_t<decltype(c)>;
-			if constexpr (requires {
-							  c.x;
-							  c.y;
-						  })
-			{
-				ss << c.x << ":" << c.y;
-			}
-			else if constexpr (requires { c.angle; })
-			{
-				ss << c.angle;
-			}
-		},
-		cmd);
-
-	return ss.str();
-}
