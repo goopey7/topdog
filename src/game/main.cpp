@@ -2,6 +2,7 @@
 #include <raylib.h>
 #include <string>
 #include <rlImGui.h>
+#include <iostream>
 
 int main()
 {

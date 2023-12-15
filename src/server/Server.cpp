@@ -150,25 +150,23 @@ bool Server::clientsAreReady() const
 
 void Server::processMsg(const ClientCommand msg, int index)
 {
-	switch (msg)
+	if (std::holds_alternative<Disconnect>(msg))
 	{
-	case ClientCommand::DISCONNECT:
 		std::cout << "Client " << index << " disconnected!" << std::endl;
 		sendToClients("client_disconnected:" + clients[index].getName(), index);
 		clients.erase(clients.begin() + index);
-		break;
-	case ClientCommand::READY:
+	}
+	else if (std::holds_alternative<Ready>(msg))
+	{
 		std::cout << "Client " << index << " is ready!" << std::endl;
 		clients[index].setReady(true);
 		sendToClients("client_ready:" + clients[index].getName(), index);
-		break;
-	case ClientCommand::NOT_READY:
+	}
+	else if (std::holds_alternative<NotReady>(msg))
+	{
 		std::cout << "Client " << index << " is not ready!" << std::endl;
 		clients[index].setReady(false);
 		sendToClients("client_not_ready:" + clients[index].getName(), index);
-		break;
-	default:
-		break;
 	}
 }
 
@@ -223,7 +221,9 @@ void Server::receiveAndHandleMsgs()
 				continue;
 			}
 			std::cout << "Client " << i << ": " << clientMsg << std::endl;
-			processMsg((ClientCommand)std::stoi(clientMsg), i);
+			int cmdIndex = std::stoi(clientMsg);
+			//using type = std::tuple_element_t<cmdIndex, ClientCommandTypes>;
+			//processMsg(, i);
 		}
 	}
 }
