@@ -196,8 +196,8 @@ void Server::processMsg(const ClientCommand msg, int index)
 	{
 	case ClientCommand::DISCONNECT:
 		std::cout << "Client " << index << " disconnected!" << std::endl;
-		clients.erase(clients.begin() + index);
 		sendToClients("client_disconnected:" + clients[index].getName(), index);
+		clients.erase(clients.begin() + index);
 		break;
 	case ClientCommand::READY:
 		std::cout << "Client " << index << " is ready!" << std::endl;
