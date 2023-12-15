@@ -25,12 +25,16 @@ class Server
 	public:
 		void startServer(int port);
 		void acceptIncomingClients();
-		void handleClientMsgs();
-		void sendToClients(const std::string& message, int indexToSkip);
+		void handleClientLobbyMsgs();
+		void sendToClients(const std::string& message, int indexToSkip = -1);
 		bool clientsAreReady() const;
+		bool shouldClose() const { return bShouldClose; }
+		void runGame();
 	private:
 		int serverSocket;
 		std::vector<Client> clients;
 		void processMsg(const ClientCommand msg, int index);
+		void receiveAndHandleMsgs();
+		bool bShouldClose = false;
 };
 

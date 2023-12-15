@@ -27,4 +27,5 @@ class Game
 	Client client;
 	std::vector<Client> otherClients;
 	std::string nameInput;
+	bool inGame = false;
 };

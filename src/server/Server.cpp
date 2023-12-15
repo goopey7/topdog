@@ -26,7 +26,7 @@ void Server::startServer(int port)
 
 void Server::sendToClients(const std::string& message, int indexToSkip)
 {
-	for (int i=0; i < clients.size(); i++)
+	for (int i = 0; i < clients.size(); i++)
 	{
 		if (i == indexToSkip)
 		{
@@ -119,62 +119,20 @@ void Server::acceptIncomingClients()
 	}
 }
 
-void Server::handleClientMsgs()
+void Server::handleClientLobbyMsgs()
 {
-	fd_set readSet;
-	int maxFd = 0;
+	while (!clientsAreReady() || clients.size() < 2)
+	{
+		receiveAndHandleMsgs();
+	}
+	sendToClients("start_game");
+}
 
+void Server::runGame()
+{
 	while (true)
 	{
-		if (clients.empty())
-		{
-			continue;
-		}
-
-		FD_ZERO(&readSet);
-
-		for (int i = 0; i < clients.size(); i++)
-		{
-			int clientSocket = clients[i].getSocket();
-			FD_SET(clientSocket, &readSet);
-			maxFd = std::max(maxFd, clientSocket);
-		}
-
-		struct timeval timeout;
-		timeout.tv_sec = 0;
-		timeout.tv_usec = 100000;
-		int result = select(maxFd + 1, &readSet, NULL, NULL, &timeout);
-		if (result == -1)
-		{
-			std::cerr << "Can't select socket" << std::endl;
-			continue;
-		}
-
-		for (int i = 0; i < clients.size(); i++)
-		{
-			int clientSocket = clients[i].getSocket();
-			if (FD_ISSET(clientSocket, &readSet))
-			{
-				int bytesAvailable;
-				ioctl(clientSocket, FIONREAD, &bytesAvailable);
-
-				// would block
-				if (bytesAvailable <= 0)
-				{
-					continue;
-				}
-
-				char clientMsg[1024];
-				result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
-				if (result == -1)
-				{
-					std::cerr << "Can't receive message from client" << std::endl;
-					continue;
-				}
-				std::cout << "Client " << i << ": " << clientMsg << std::endl;
-				processMsg((ClientCommand)std::stoi(clientMsg), i);
-			}
-		}
+		receiveAndHandleMsgs();
 	}
 }
 
@@ -211,5 +169,61 @@ void Server::processMsg(const ClientCommand msg, int index)
 		break;
 	default:
 		break;
+	}
+}
+
+void Server::receiveAndHandleMsgs()
+{
+	fd_set readSet;
+	int maxFd = 0;
+
+	if (clients.empty())
+	{
+		return;
+	}
+
+	FD_ZERO(&readSet);
+
+	for (int i = 0; i < clients.size(); i++)
+	{
+		int clientSocket = clients[i].getSocket();
+		FD_SET(clientSocket, &readSet);
+		maxFd = std::max(maxFd, clientSocket);
+	}
+
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 100000;
+	int result = select(maxFd + 1, &readSet, NULL, NULL, &timeout);
+	if (result == -1)
+	{
+		std::cerr << "Can't select socket" << std::endl;
+		return;
+	}
+
+	for (int i = 0; i < clients.size(); i++)
+	{
+		int clientSocket = clients[i].getSocket();
+		if (FD_ISSET(clientSocket, &readSet))
+		{
+			int bytesAvailable;
+			ioctl(clientSocket, FIONREAD, &bytesAvailable);
+
+			// would block
+			if (bytesAvailable <= 0)
+			{
+				continue;
+			}
+
+			char clientMsg[1024];
+			result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
+			if (result == -1)
+			{
+				std::cerr << "Can't receive message from client" << std::endl;
+				continue;
+			}
+			std::cout << "Client " << i << ": " << clientMsg << std::endl;
+			processMsg((ClientCommand)std::stoi(clientMsg), i);
+		}
 	}
 }

@@ -60,22 +60,9 @@ void Game::mainMenu()
 
 void Game::lobbyMenu()
 {
-	if (client.isConnected() && client.isReadyToStart() && !otherClients.empty())
+	if (inGame)
 	{
-		bool allClientsReady = true;
-		for (auto& c : otherClients)
-		{
-			if (!c.isReadyToStart())
-			{
-				allClientsReady = false;
-				break;
-			}
-		}
-
-		if (allClientsReady)
-		{
-			nextScene();
-		}
+		nextScene();
 	}
 
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -176,6 +163,10 @@ void Game::listenToServer()
 						otherClients.erase(otherClients.begin() + i);
 					}
 				}
+			}
+			else if (serverMsg.find("start_game") != std::string::npos)
+			{
+				inGame = true;
 			}
 		}
 	}

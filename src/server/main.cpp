@@ -5,7 +5,11 @@ int main()
 {
 	Server server;
 	server.startServer(4916);
-	std::thread serverThread(&Server::handleClientMsgs, &server);
-	server.acceptIncomingClients();
-	serverThread.join();
+	while (!server.shouldClose())
+	{
+		std::thread acceptIncomingClients(&Server::acceptIncomingClients, &server);
+		server.handleClientLobbyMsgs();
+		acceptIncomingClients.detach();
+		server.runGame();
+	}
 }
