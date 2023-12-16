@@ -158,21 +158,24 @@ void Server::processMsg(const ClientCommand msg, int index)
 	}
 	else if (std::holds_alternative<Ready>(msg))
 	{
-		std::cout << "Client " << index << " is ready!" << std::endl;
-		clients[index].setReady(true);
-		sendToClients("client_ready:" + clients[index].getName(), index);
-	}
-	else if (std::holds_alternative<NotReady>(msg))
-	{
-		std::cout << "Client " << index << " is not ready!" << std::endl;
-		clients[index].setReady(false);
-		sendToClients("client_not_ready:" + clients[index].getName(), index);
+		Ready readyCmd = std::get<Ready>(msg);
+		clients[index].setReady(readyCmd.ready);
+		if (readyCmd.ready)
+		{
+			std::cout << "Client " << index << " is ready!" << std::endl;
+			sendToClients("client_ready:" + clients[index].getName(), index);
+		}
+		else
+		{
+			std::cout << "Client " << index << " is not ready!" << std::endl;
+			sendToClients("client_not_ready:" + clients[index].getName(), index);
+		}
 	}
 	else if (std::holds_alternative<UpdatePosition>(msg))
 	{
 		UpdatePosition pos = std::get<UpdatePosition>(msg);
-		std::cout << "Client " << index << " updated position to (" << pos.x << ", " << pos.y << ")"
-				  << std::endl;
+		std::cout << "Client " << index << " updated position to (" << pos.x << ", " << pos.y
+				  << ")\n";
 	}
 }
 

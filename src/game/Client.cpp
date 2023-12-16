@@ -121,17 +121,7 @@ bool Client::isConnected() const { return isConnectedToServer; }
 void Client::toggleReady()
 {
 	isReady = !isReady;
-	if (isReady)
-	{
-		UpdatePosition updatePos;
-		updatePos.x = 23;
-		updatePos.y = 12;
-		sendToServer(updatePos);
-	}
-	else
-	{
-		sendToServer(NotReady());
-	}
+	sendToServer(Ready(isReady));
 }
 
 std::string Client::listenToServer()

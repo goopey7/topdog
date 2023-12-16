@@ -8,40 +8,31 @@
 
 struct Disconnect
 {
-	const int id = 0;
 };
 
 struct Ready
 {
-	const int id = 1;
-};
-
-struct NotReady
-{
-	const int id = 2;
+	bool ready;
 };
 
 struct UpdatePosition
 {
-	const int id = 3;
 	float x = 0;
 	float y = 0;
 };
 
 struct UpdateVelocity
 {
-	const int id = 4;
 	float x = 0;
 	float y = 0;
 };
 
 struct UpdateRotation
 {
-	const int id = 5;
 	float angle = 0;
 };
 
-#define COMMANDS Disconnect, Ready, NotReady, UpdatePosition, UpdateVelocity, UpdateRotation
+#define COMMANDS Disconnect, Ready, UpdatePosition, UpdateVelocity, UpdateRotation
 
 using ClientCommand = std::variant<COMMANDS>;
 
@@ -52,7 +43,7 @@ using ClientCommand = std::variant<COMMANDS>;
 		std::visit(                                                                                \
 			[&](auto&& arg)                                                                        \
 			{                                                                                      \
-				ss << arg.id;                                                                      \
+				ss << cmd.index();                                                                 \
 				using T = std::decay_t<decltype(arg)>;                                             \
 				if constexpr (std::is_same_v<T, UpdatePosition> ||                                 \
 							  std::is_same_v<T, UpdateVelocity>)                                   \
@@ -62,6 +53,10 @@ using ClientCommand = std::variant<COMMANDS>;
 				else if constexpr (std::is_same_v<T, UpdateRotation>)                              \
 				{                                                                                  \
 					ss << ":" << arg.angle;                                                        \
+				}                                                                                  \
+				else if constexpr (std::is_same_v<T, Ready>)                                       \
+				{                                                                                  \
+					ss << ":" << arg.ready;                                                        \
 				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
@@ -111,6 +106,10 @@ inline ClientCommand parseCommand(const std::string& str)
 		if (std::holds_alternative<UpdateRotation>(cmd))
 		{
 			std::get<UpdateRotation>(cmd).angle = std::stof(tokens[1]);
+		}
+		else if (std::holds_alternative<Ready>(cmd))
+		{
+			std::get<Ready>(cmd).ready = std::stoi(tokens[1]);
 		}
 	}
 
