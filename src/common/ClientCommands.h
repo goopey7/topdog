@@ -2,41 +2,42 @@
 
 #include <sstream>
 #include <variant>
+#include <vector>
 
 #include <boost/mp11.hpp>
 
 struct Disconnect
 {
-	int id = 0;
+	const int id = 0;
 };
 
 struct Ready
 {
-	int id = 1;
+	const int id = 1;
 };
 
 struct NotReady
 {
-	int id = 2;
+	const int id = 2;
 };
 
 struct UpdatePosition
 {
-	int id = 3;
+	const int id = 3;
 	float x = 0;
 	float y = 0;
 };
 
 struct UpdateVelocity
 {
-	int id = 4;
+	const int id = 4;
 	float x = 0;
 	float y = 0;
 };
 
 struct UpdateRotation
 {
-	int id = 5;
+	const int id = 5;
 	float angle = 0;
 };
 
@@ -64,6 +65,7 @@ using ClientCommand = std::variant<COMMANDS>;
 				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
+		ss << ":";                                                                                 \
 		return ss.str();                                                                           \
 	}()
 
@@ -72,4 +74,45 @@ template <typename V> auto variant_from_index(size_t index) -> V
 {
 	using namespace boost::mp11;
 	return mp_with_index<mp_size<V>>(index, [](auto I) { return V(std::in_place_index<I>); });
+}
+
+inline ClientCommand parseCommand(const std::string& str)
+{
+	// split string by ':'
+	std::vector<std::string> tokens;
+	int start = 0;
+	for (int i = 0; i < str.size(); i++)
+	{
+		if (str[i] == ':')
+		{
+			tokens.push_back(str.substr(start, i - start));
+			start = i + 1;
+		}
+	}
+
+	auto cmd = variant_from_index<ClientCommand>(std::stoi(tokens[0]));
+
+	// initialize structs with arguments if necessary
+	if (tokens.size() == 3)
+	{
+		if (std::holds_alternative<UpdatePosition>(cmd))
+		{
+			std::get<UpdatePosition>(cmd).x = std::stof(tokens[1]);
+			std::get<UpdatePosition>(cmd).y = std::stof(tokens[2]);
+		}
+		else if (std::holds_alternative<UpdateVelocity>(cmd))
+		{
+			std::get<UpdateVelocity>(cmd).x = std::stof(tokens[1]);
+			std::get<UpdateVelocity>(cmd).y = std::stof(tokens[2]);
+		}
+	}
+	else if (tokens.size() == 2)
+	{
+		if (std::holds_alternative<UpdateRotation>(cmd))
+		{
+			std::get<UpdateRotation>(cmd).angle = std::stof(tokens[1]);
+		}
+	}
+
+	return cmd;
 }

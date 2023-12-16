@@ -168,6 +168,12 @@ void Server::processMsg(const ClientCommand msg, int index)
 		clients[index].setReady(false);
 		sendToClients("client_not_ready:" + clients[index].getName(), index);
 	}
+	else if (std::holds_alternative<UpdatePosition>(msg))
+	{
+		UpdatePosition pos = std::get<UpdatePosition>(msg);
+		std::cout << "Client " << index << " updated position to (" << pos.x << ", " << pos.y << ")"
+				  << std::endl;
+	}
 }
 
 void Server::receiveAndHandleMsgs()
@@ -222,8 +228,7 @@ void Server::receiveAndHandleMsgs()
 			}
 			std::cout << "Client " << i << ": " << clientMsg << std::endl;
 			std::cout << "Client " << i << " sent command " << std::string(clientMsg) << std::endl;
-			int cmdIndex = std::stoi(std::string(clientMsg));
-			ClientCommand cmd = variant_from_index<ClientCommand>(cmdIndex);
+			auto cmd = parseCommand(clientMsg);
 			processMsg(cmd, i);
 		}
 	}

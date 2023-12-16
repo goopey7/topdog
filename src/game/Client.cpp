@@ -101,7 +101,6 @@ const std::vector<Client> Client::connectToServer(const std::string& ip, int por
 void Client::sendToServer(const ClientCommand& command)
 {
 	std::string message = STRINGIFY_COMMAND(command);
-	std::cout << "Client: " << message << std::endl;
 	send(clientSocket, message.c_str(), message.size() + 1, 0);
 }
 
@@ -124,7 +123,10 @@ void Client::toggleReady()
 	isReady = !isReady;
 	if (isReady)
 	{
-		sendToServer(Ready());
+		UpdatePosition updatePos;
+		updatePos.x = 23;
+		updatePos.y = 12;
+		sendToServer(updatePos);
 	}
 	else
 	{
