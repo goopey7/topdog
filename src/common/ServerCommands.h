@@ -109,7 +109,7 @@ inline ServerCommand parseServerCommand(const std::string& str)
 		if (std::holds_alternative<ClientReady>(cmd))
 		{
 			std::get<ClientReady>(cmd).name = tokens[1];
-			std::get<ClientReady>(cmd).ready = tokens[2] == "1";
+			std::get<ClientReady>(cmd).ready = std::stoi(tokens[2]);
 		}
 	}
 	else if (tokens.size() == 2)

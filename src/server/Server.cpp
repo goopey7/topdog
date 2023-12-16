@@ -161,7 +161,7 @@ void Server::processMsg(const ClientCommand msg, int index)
 	{
 		Ready readyCmd = std::get<Ready>(msg);
 		clients[index].setReady(readyCmd.ready);
-		sendToClients(ClientReady(name), index);
+		sendToClients(ClientReady(name, readyCmd.ready), index);
 	}
 	else if (std::holds_alternative<UpdateStatus>(msg))
 	{

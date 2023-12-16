@@ -132,12 +132,7 @@ void Game::listenToServer()
 		{
 			ServerCommand cmd = client.listenToServer();
 
-			if (std::holds_alternative<StartGame>(cmd))
-			{
-				std::cout << "Starting game!" << std::endl;
-				inGame = true;
-			}
-			else if (std::holds_alternative<NewClient>(cmd))
+			if (std::holds_alternative<NewClient>(cmd))
 			{
 				NewClient newClient = std::get<NewClient>(cmd);
 				Client c;
@@ -165,6 +160,11 @@ void Game::listenToServer()
 						otherClients.erase(otherClients.begin() + i);
 					}
 				}
+			}
+			else if (std::holds_alternative<StartGame>(cmd))
+			{
+				std::cout << "Starting game!" << std::endl;
+				inGame = true;
 			}
 		}
 	}
