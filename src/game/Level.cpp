@@ -19,14 +19,17 @@ void Level::init()
 void Level::update(float dt)
 {
 	// check collisions
-	for (const Bullet& bullet : ship.getBullets())
+	for (int i = 0; i < ship.getBullets().size(); i++)
 	{
 		for (Ship& otherShip : otherShips)
 		{
-			if (CheckCollisionCircleRec(bullet.getPosition(), bullet.getSize(),
+			if (CheckCollisionCircleRec(ship.getBullets()[i].getPosition(),
+										ship.getBullets()[i].getSize(),
 										otherShip.getCollisionRect()))
 			{
-				otherShip.onCollision(bullet);
+				otherShip.onCollision(ship.getBullets()[i]);
+				ship.getBullets().erase(ship.getBullets().begin() + i);
+				break;
 			}
 		}
 	}

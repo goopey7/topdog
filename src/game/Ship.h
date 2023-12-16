@@ -14,7 +14,7 @@ class Ship
 		void update(float dt);
 		void draw();
 		void onCollision(const Bullet& other);
-		const std::vector<Bullet>& getBullets() const { return bullets; }
+		std::vector<Bullet>& getBullets() { return bullets; }
 		Rectangle getCollisionRect() const;
 		const std::string& getName() const { return name; }
 
