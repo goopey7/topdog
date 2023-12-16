@@ -150,23 +150,23 @@ bool Server::clientsAreReady() const
 
 void Server::processMsg(const ClientCommand msg, int index)
 {
+	std::string name = clients[index].getName();
 	if (std::holds_alternative<Disconnect>(msg))
 	{
 		std::cout << "Client " << index << " disconnected!" << std::endl;
-		sendToClients(ClientDisconnected(clients[index].getName()), index);
+		sendToClients(ClientDisconnected(name), index);
 		clients.erase(clients.begin() + index);
 	}
 	else if (std::holds_alternative<Ready>(msg))
 	{
 		Ready readyCmd = std::get<Ready>(msg);
 		clients[index].setReady(readyCmd.ready);
-		sendToClients(ClientReady(clients[index].getName(), readyCmd.ready), index);
+		sendToClients(ClientReady(name), index);
 	}
-	else if (std::holds_alternative<UpdatePosition>(msg))
+	else if (std::holds_alternative<UpdateStatus>(msg))
 	{
-		std::string name = clients[index].getName();
-		UpdatePosition pos = std::get<UpdatePosition>(msg);
-		sendToClients(ClientUpdatePosition(name, pos.x, pos.y), index);
+		UpdateStatus us = std::get<UpdateStatus>(msg);
+		sendToClients(ClientUpdateStatus(name, us.posx, us.posy, us.velx, us.vely, us.angle), index);
 	}
 }
 

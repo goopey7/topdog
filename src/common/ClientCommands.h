@@ -6,6 +6,8 @@
 
 #include <boost/mp11.hpp>
 
+#include <raylib.h>
+
 struct Disconnect
 {
 };
@@ -15,28 +17,20 @@ struct Ready
 	bool ready;
 };
 
-struct UpdatePosition
+struct UpdateStatus
 {
-	float x = 0;
-	float y = 0;
+	float posx;
+	float posy;
+	float velx;
+	float vely;
+	float angle;
 };
 
-struct UpdateVelocity
-{
-	float x = 0;
-	float y = 0;
-};
-
-struct UpdateRotation
-{
-	float angle = 0;
-};
-
-#define CLIENT_COMMANDS Disconnect, Ready, UpdatePosition, UpdateVelocity, UpdateRotation
+#define CLIENT_COMMANDS Disconnect, Ready, UpdateStatus
 
 using ClientCommand = std::variant<CLIENT_COMMANDS>;
 
-#define STRINGIFY_CLIENT_COMMAND(cmd)                                                                     \
+#define STRINGIFY_CLIENT_COMMAND(cmd)                                                              \
 	[&]()                                                                                          \
 	{                                                                                              \
 		std::stringstream ss;                                                                      \
@@ -45,14 +39,10 @@ using ClientCommand = std::variant<CLIENT_COMMANDS>;
 			{                                                                                      \
 				ss << cmd.index();                                                                 \
 				using T = std::decay_t<decltype(arg)>;                                             \
-				if constexpr (std::is_same_v<T, UpdatePosition> ||                                 \
-							  std::is_same_v<T, UpdateVelocity>)                                   \
+				if constexpr (std::is_same_v<T, UpdateStatus>)                                     \
 				{                                                                                  \
-					ss << ":" << arg.x << ":" << arg.y;                                            \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, UpdateRotation>)                              \
-				{                                                                                  \
-					ss << ":" << arg.angle;                                                        \
+					ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx \
+					   << ":" << arg.vely << ":" << arg.angle;                                     \
 				}                                                                                  \
 				else if constexpr (std::is_same_v<T, Ready>)                                       \
 				{                                                                                  \
@@ -88,26 +78,22 @@ inline ClientCommand parseClientCommand(const std::string& str)
 	auto cmd = variant_from_index<ClientCommand>(std::stoi(tokens[0]));
 
 	// initialize structs with arguments if necessary
-	if (tokens.size() == 3)
+	if (tokens.size() == 6)
 	{
-		if (std::holds_alternative<UpdatePosition>(cmd))
+		if (std::holds_alternative<UpdateStatus>(cmd))
 		{
-			std::get<UpdatePosition>(cmd).x = std::stof(tokens[1]);
-			std::get<UpdatePosition>(cmd).y = std::stof(tokens[2]);
-		}
-		else if (std::holds_alternative<UpdateVelocity>(cmd))
-		{
-			std::get<UpdateVelocity>(cmd).x = std::stof(tokens[1]);
-			std::get<UpdateVelocity>(cmd).y = std::stof(tokens[2]);
+			auto us = std::get<UpdateStatus>(cmd);
+			us.posx = std::stof(tokens[1]);
+			us.posy = std::stof(tokens[2]);
+			us.velx = std::stof(tokens[3]);
+			us.vely = std::stof(tokens[4]);
+			us.angle = std::stof(tokens[5]);
+			cmd = us;
 		}
 	}
 	else if (tokens.size() == 2)
 	{
-		if (std::holds_alternative<UpdateRotation>(cmd))
-		{
-			std::get<UpdateRotation>(cmd).angle = std::stof(tokens[1]);
-		}
-		else if (std::holds_alternative<Ready>(cmd))
+		if (std::holds_alternative<Ready>(cmd))
 		{
 			std::get<Ready>(cmd).ready = std::stoi(tokens[1]);
 		}
@@ -115,4 +101,3 @@ inline ClientCommand parseClientCommand(const std::string& str)
 
 	return cmd;
 }
-

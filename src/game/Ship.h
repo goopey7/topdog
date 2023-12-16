@@ -23,6 +23,8 @@ class Ship
 		float getRotation() const { return rotation; }
 
 		void setPosition(const Vector2& position) { this->position = position; }
+		void setVelocity(const Vector2& velocity) { this->velocity = velocity; }
+		void setRotation(float rotation) { this->rotation = rotation; }
 	private:
 		Vector2 position = { 320, 100 };
 		Vector2 velocity = { 0, 0 };

@@ -26,29 +26,17 @@ struct ClientReady
 	bool ready;
 };
 
-struct ClientUpdatePosition
+struct ClientUpdateStatus
 {
 	std::string name;
-	float x;
-	float y;
+	float posx;
+	float posy;
+	float velx;
+	float vely;
+	float angle;
 };
 
-struct ClientUpdateVelocity
-{
-	std::string name;
-	float x;
-	float y;
-};
-
-struct ClientUpdateRotation
-{
-	std::string name;
-	float rotation;
-};
-
-#define SERVER_COMMANDS                                                                            \
-	StartGame, NewClient, ClientDisconnected, ClientReady, ClientUpdatePosition,                   \
-		ClientUpdateVelocity, ClientUpdateRotation
+#define SERVER_COMMANDS StartGame, NewClient, ClientDisconnected, ClientReady, ClientUpdateStatus
 
 using ServerCommand = std::variant<SERVER_COMMANDS>;
 
@@ -70,14 +58,10 @@ using ServerCommand = std::variant<SERVER_COMMANDS>;
 				{                                                                                  \
 					ss << ":" << arg.name << ":" << arg.ready;                                     \
 				}                                                                                  \
-				else if constexpr (std::is_same_v<T, ClientUpdatePosition> ||                      \
-								   std::is_same_v<T, ClientUpdateVelocity>)                        \
+				else if constexpr (std::is_same_v<T, ClientUpdateStatus>)                          \
 				{                                                                                  \
-					ss << ":" << arg.name << ":" << arg.x << ":" << arg.y;                         \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, ClientUpdateRotation>)                        \
-				{                                                                                  \
-					ss << ":" << arg.name << ":" << arg.rotation;                                  \
+					ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx \
+					   << ":" << arg.vely << ":" << arg.angle;                                     \
 				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
@@ -108,19 +92,16 @@ inline ServerCommand parseServerCommand(const std::string& str)
 
 	auto cmd = srv_variant_from_index<ServerCommand>(std::stoi(tokens[0]));
 
-	if (tokens.size() == 4)
+	if (tokens.size() == 7)
 	{
-		if (std::holds_alternative<ClientUpdatePosition>(cmd))
+		if (std::holds_alternative<ClientUpdateStatus>(cmd))
 		{
-			std::get<ClientUpdatePosition>(cmd).name = tokens[1];
-			std::get<ClientUpdatePosition>(cmd).x = std::stof(tokens[2]);
-			std::get<ClientUpdatePosition>(cmd).y = std::stof(tokens[3]);
-		}
-		else if (std::holds_alternative<ClientUpdateVelocity>(cmd))
-		{
-			std::get<ClientUpdateVelocity>(cmd).name = tokens[1];
-			std::get<ClientUpdateVelocity>(cmd).x = std::stof(tokens[2]);
-			std::get<ClientUpdateVelocity>(cmd).y = std::stof(tokens[3]);
+			std::get<ClientUpdateStatus>(cmd).name = tokens[1];
+			std::get<ClientUpdateStatus>(cmd).posx = std::stof(tokens[2]);
+			std::get<ClientUpdateStatus>(cmd).posy = std::stof(tokens[3]);
+			std::get<ClientUpdateStatus>(cmd).velx = std::stof(tokens[4]);
+			std::get<ClientUpdateStatus>(cmd).vely = std::stof(tokens[5]);
+			std::get<ClientUpdateStatus>(cmd).angle = std::stof(tokens[6]);
 		}
 	}
 	else if (tokens.size() == 3)
@@ -129,11 +110,6 @@ inline ServerCommand parseServerCommand(const std::string& str)
 		{
 			std::get<ClientReady>(cmd).name = tokens[1];
 			std::get<ClientReady>(cmd).ready = tokens[2] == "1";
-		}
-		else if (std::holds_alternative<ClientUpdateRotation>(cmd))
-		{
-			std::get<ClientUpdateRotation>(cmd).name = tokens[1];
-			std::get<ClientUpdateRotation>(cmd).rotation = std::stof(tokens[2]);
 		}
 	}
 	else if (tokens.size() == 2)

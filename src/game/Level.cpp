@@ -63,7 +63,6 @@ void Level::update(float dt)
 
 void Level::draw()
 {
-	// draw ship position
 	DrawText(std::to_string(ship.getPosition().x).c_str(), 0, 0, 20, RED);
 	DrawText(std::to_string(ship.getPosition().y).c_str(), 0, 20, 20, RED);
 
@@ -86,13 +85,17 @@ void Level::updateServer()
 {
 	while (true)
 	{
-		if (lastPositionSent.x != ship.getPosition().x && lastPositionSent.y != ship.getPosition().y)
+		if ((lastPositionSent.x != ship.getPosition().x &&
+			 lastPositionSent.y != ship.getPosition().y) ||
+			(lastVelocitySent.x != ship.getVelocity().x &&
+			 lastVelocitySent.y != ship.getVelocity().y) ||
+			(lastRotationSent != ship.getRotation()))
 		{
-			client->sendToServer(UpdatePosition(ship.getPosition().x, ship.getPosition().y));
-			lastPositionSent = ship.getPosition();
+			auto us = UpdateStatus(ship.getPosition().x, ship.getPosition().y,
+											  ship.getVelocity().x, ship.getVelocity().y,
+											  ship.getRotation());
+			client->sendToServer(us);
 		}
-		//client->sendToServer(UpdateVelocity(ship.getVelocity().x, ship.getVelocity().y));
-		//client->sendToServer(UpdateRotation(ship.getRotation()));
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	}
 }
@@ -102,15 +105,29 @@ void Level::updateClient()
 	while (true)
 	{
 		ServerCommand cmd = client->listenToServer();
-		if (std::holds_alternative<ClientUpdatePosition>(cmd))
+		if (std::holds_alternative<ClientUpdateStatus>(cmd))
 		{
 			// find the ship with the same name as the one in the command
 			for (Ship& otherShip : otherShips)
 			{
-				if (otherShip.getName() == std::get<ClientUpdatePosition>(cmd).name)
+				if (otherShip.getName() == std::get<ClientUpdateStatus>(cmd).name)
 				{
-					otherShip.setPosition({std::get<ClientUpdatePosition>(cmd).x,
-										   std::get<ClientUpdatePosition>(cmd).y});
+					otherShip.setPosition({std::get<ClientUpdateStatus>(cmd).posx,
+									  std::get<ClientUpdateStatus>(cmd).posy});
+					otherShip.setVelocity({std::get<ClientUpdateStatus>(cmd).velx,
+									  std::get<ClientUpdateStatus>(cmd).vely});
+					otherShip.setRotation(std::get<ClientUpdateStatus>(cmd).angle);
+					break;
+				}
+			}
+		}
+		else if (std::holds_alternative<ClientDisconnected>(cmd))
+		{
+			for (int i = 0; i < otherShips.size(); i++)
+			{
+				if (otherShips[i].getName() == std::get<ClientDisconnected>(cmd).name)
+				{
+					otherShips.erase(otherShips.begin() + i);
 					break;
 				}
 			}
