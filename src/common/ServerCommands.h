@@ -34,6 +34,7 @@ struct ClientUpdateStatus
 	float velx;
 	float vely;
 	float angle;
+	bool fire;
 };
 
 #define SERVER_COMMANDS StartGame, NewClient, ClientDisconnected, ClientReady, ClientUpdateStatus
@@ -61,7 +62,7 @@ using ServerCommand = std::variant<SERVER_COMMANDS>;
 				else if constexpr (std::is_same_v<T, ClientUpdateStatus>)                          \
 				{                                                                                  \
 					ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx \
-					   << ":" << arg.vely << ":" << arg.angle;                                     \
+					   << ":" << arg.vely << ":" << arg.angle << ":" << arg.fire;                  \
 				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
@@ -92,7 +93,7 @@ inline ServerCommand parseServerCommand(const std::string& str)
 
 	auto cmd = srv_variant_from_index<ServerCommand>(std::stoi(tokens[0]));
 
-	if (tokens.size() == 7)
+	if (tokens.size() == 8)
 	{
 		if (std::holds_alternative<ClientUpdateStatus>(cmd))
 		{
@@ -102,6 +103,7 @@ inline ServerCommand parseServerCommand(const std::string& str)
 			std::get<ClientUpdateStatus>(cmd).velx = std::stof(tokens[4]);
 			std::get<ClientUpdateStatus>(cmd).vely = std::stof(tokens[5]);
 			std::get<ClientUpdateStatus>(cmd).angle = std::stof(tokens[6]);
+			std::get<ClientUpdateStatus>(cmd).fire = std::stoi(tokens[7]);
 		}
 	}
 	else if (tokens.size() == 3)

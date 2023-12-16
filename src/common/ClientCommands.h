@@ -24,6 +24,7 @@ struct UpdateStatus
 	float velx;
 	float vely;
 	float angle;
+	bool fire;
 };
 
 #define CLIENT_COMMANDS Disconnect, Ready, UpdateStatus
@@ -41,8 +42,8 @@ using ClientCommand = std::variant<CLIENT_COMMANDS>;
 				using T = std::decay_t<decltype(arg)>;                                             \
 				if constexpr (std::is_same_v<T, UpdateStatus>)                                     \
 				{                                                                                  \
-					ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx \
-					   << ":" << arg.vely << ":" << arg.angle;                                     \
+					ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx << ":" << arg.vely \
+					   << ":" << arg.angle << ":" << arg.fire;                                     \
 				}                                                                                  \
 				else if constexpr (std::is_same_v<T, Ready>)                                       \
 				{                                                                                  \
@@ -78,7 +79,7 @@ inline ClientCommand parseClientCommand(const std::string& str)
 	auto cmd = variant_from_index<ClientCommand>(std::stoi(tokens[0]));
 
 	// initialize structs with arguments if necessary
-	if (tokens.size() == 6)
+	if (tokens.size() == 7)
 	{
 		if (std::holds_alternative<UpdateStatus>(cmd))
 		{
@@ -88,6 +89,7 @@ inline ClientCommand parseClientCommand(const std::string& str)
 			us.velx = std::stof(tokens[3]);
 			us.vely = std::stof(tokens[4]);
 			us.angle = std::stof(tokens[5]);
+			us.fire = std::stoi(tokens[6]);
 			cmd = us;
 		}
 	}

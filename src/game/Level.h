@@ -34,7 +34,6 @@ class Level : public Scene
 	std::thread* updateServerThread;
 	std::thread* updateClientThread;
 
-	Vector2 lastPositionSent = {0, 0};
 	Vector2 lastVelocitySent = {0, 0};
 	float lastRotationSent = 0;
 };

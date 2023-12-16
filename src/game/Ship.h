@@ -6,11 +6,12 @@
 #include <raylib.h>
 #include <cstdint>
 #include <string>
+#include "Client.h"
 
 class Ship
 {
 	public:
-		void init(bool playerControlled, const std::string& name);
+		void init(bool playerControlled, const std::string& name, Client* client);
 		void update(float dt);
 		void draw();
 		void onCollision(const Bullet& other);
@@ -27,6 +28,7 @@ class Ship
 		void setRotation(float rotation) { this->rotation = rotation; }
 
 		void calculateAnimation();
+		void fire();
 	private:
 		Vector2 position = { 320, 100 };
 		Vector2 velocity = { 0, 0 };
@@ -43,10 +45,11 @@ class Ship
 		bool animFlip = false;
 
 		void handleInput(float dt);
-		void fire();
 
 		std::string name;
 
 		Vector2 lastVelocity = { 0, 0 };
 		float lastRotation = 0;
+
+		Client* client;
 };

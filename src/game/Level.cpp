@@ -1,15 +1,16 @@
 // Sam Collier 2023
 
 #include "Level.h"
+#include <iostream>
 #include <thread>
 
 void Level::init()
 {
-	ship.init(true, client->getName());
+	ship.init(true, client->getName(), client);
 	for (const Client& c : *otherClients)
 	{
 		Ship otherShip;
-		otherShip.init(false, c.getName());
+		otherShip.init(false, c.getName(), nullptr);
 		otherShips.push_back(otherShip);
 	}
 	updateServerThread = new std::thread(&Level::updateServer, this);
@@ -27,8 +28,21 @@ void Level::update(float dt)
 										ship.getBullets()[i].getSize(),
 										otherShip.getCollisionRect()))
 			{
-				otherShip.onCollision(ship.getBullets()[i]);
 				ship.getBullets().erase(ship.getBullets().begin() + i);
+				break;
+			}
+		}
+	}
+
+	for (int i = 0; i < otherShips.size(); i++)
+	{
+		for (int j = 0; j < otherShips[i].getBullets().size(); j++)
+		{
+			if (CheckCollisionCircleRec(otherShips[i].getBullets()[j].getPosition(),
+										otherShips[i].getBullets()[j].getSize(),
+										ship.getCollisionRect()))
+			{
+				otherShips[i].getBullets().erase(otherShips[i].getBullets().begin() + j);
 				break;
 			}
 		}
@@ -88,15 +102,12 @@ void Level::updateServer()
 {
 	while (true)
 	{
-		if ((lastPositionSent.x != ship.getPosition().x &&
-			 lastPositionSent.y != ship.getPosition().y) ||
-			(lastVelocitySent.x != ship.getVelocity().x &&
+		if ((lastVelocitySent.x != ship.getVelocity().x &&
 			 lastVelocitySent.y != ship.getVelocity().y) ||
 			(lastRotationSent != ship.getRotation()))
 		{
-			auto us = UpdateStatus(ship.getPosition().x, ship.getPosition().y,
-											  ship.getVelocity().x, ship.getVelocity().y,
-											  ship.getRotation());
+			auto us = UpdateStatus(ship.getPosition().x, ship.getPosition().y, ship.getVelocity().x,
+								   ship.getVelocity().y, ship.getRotation(), false);
 			client->sendToServer(us);
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(5));
@@ -116,10 +127,14 @@ void Level::updateClient()
 				if (otherShip.getName() == std::get<ClientUpdateStatus>(cmd).name)
 				{
 					otherShip.setPosition({std::get<ClientUpdateStatus>(cmd).posx,
-									  std::get<ClientUpdateStatus>(cmd).posy});
+										   std::get<ClientUpdateStatus>(cmd).posy});
 					otherShip.setVelocity({std::get<ClientUpdateStatus>(cmd).velx,
-									  std::get<ClientUpdateStatus>(cmd).vely});
+										   std::get<ClientUpdateStatus>(cmd).vely});
 					otherShip.setRotation(std::get<ClientUpdateStatus>(cmd).angle);
+					if (std::get<ClientUpdateStatus>(cmd).fire)
+					{
+						otherShip.fire();
+					}
 					break;
 				}
 			}

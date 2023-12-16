@@ -3,7 +3,9 @@
 #include <cmath>
 #include <raylib.h>
 
-void Ship::init(bool playerControlled, const std::string& name)
+#include "ClientCommands.h"
+
+void Ship::init(bool playerControlled, const std::string& name, Client* client)
 {
 	textures.push_back(LoadTexture("res/sprites/shipIdle.png"));
 	textures.push_back(LoadTexture("res/sprites/shipActive.png"));
@@ -12,6 +14,7 @@ void Ship::init(bool playerControlled, const std::string& name)
 	bullets.reserve(20);
 	this->playerControlled = playerControlled;
 	this->name = name;
+	this->client = client;
 }
 
 void Ship::handleInput(float dt)
@@ -72,6 +75,8 @@ void Ship::handleInput(float dt)
 	if (IsKeyPressed(KEY_SPACE))
 	{
 		fire();
+		auto us = UpdateStatus(position.x, position.y, velocity.x, velocity.y, rotation, true);
+		client->sendToServer(us);
 	}
 }
 
@@ -119,8 +124,8 @@ void Ship::draw()
 			 (float)textures[animationIndex].height},
 			{(float)textures[animationIndex].width / 2, (float)textures[animationIndex].height / 2},
 			rotation, WHITE);
-		DrawText(name.c_str(), position.x - MeasureText(name.c_str(), 20) / 2.f, position.y + 50, 20,
-				 WHITE);
+		DrawText(name.c_str(), position.x - MeasureText(name.c_str(), 20) / 2.f, position.y + 50,
+				 20, WHITE);
 	}
 
 	for (const Bullet& bullet : bullets)
@@ -149,6 +154,4 @@ void Ship::calculateAnimation()
 	{
 		animationIndex = 0;
 	}
-
 }
-
