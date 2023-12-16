@@ -82,6 +82,8 @@ void Ship::update(float dt)
 		handleInput(dt);
 	}
 
+	calculateAnimation();
+
 	position.x += velocity.x * dt;
 	position.y += velocity.y * dt;
 
@@ -89,6 +91,9 @@ void Ship::update(float dt)
 	{
 		bullet.update(dt);
 	}
+
+	lastVelocity = velocity;
+	lastRotation = rotation;
 }
 
 void Ship::fire()
@@ -130,3 +135,20 @@ Rectangle Ship::getCollisionRect() const
 			position.y - textures[animationIndex].height / 2.f,
 			(float)textures[animationIndex].width, (float)textures[animationIndex].height};
 }
+
+void Ship::calculateAnimation()
+{
+	if (playerControlled)
+		return;
+
+	if (lastVelocity.x != velocity.x || lastVelocity.y != velocity.y)
+	{
+		animationIndex = 1;
+	}
+	else
+	{
+		animationIndex = 0;
+	}
+
+}
+

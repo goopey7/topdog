@@ -25,6 +25,8 @@ class Ship
 		void setPosition(const Vector2& position) { this->position = position; }
 		void setVelocity(const Vector2& velocity) { this->velocity = velocity; }
 		void setRotation(float rotation) { this->rotation = rotation; }
+
+		void calculateAnimation();
 	private:
 		Vector2 position = { 320, 100 };
 		Vector2 velocity = { 0, 0 };
@@ -44,4 +46,7 @@ class Ship
 		void fire();
 
 		std::string name;
+
+		Vector2 lastVelocity = { 0, 0 };
+		float lastRotation = 0;
 };
