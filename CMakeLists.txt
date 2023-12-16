@@ -16,6 +16,7 @@ include_directories(${RAYLIB_INCLUDE_DIR})
 
 include_directories("libs/imgui")
 add_subdirectory("libs/imgui")
+include_directories("libs/mp11/include")
 
 target_link_libraries(${PROJECT_NAME} PRIVATE ${RAYLIB_LIBRARY} imgui_lib)
 
@@ -23,3 +24,4 @@ project(server)
 set(CMAKE_CXX_STANDARD 20)
 file(GLOB_RECURSE SRC_FILES "src/server/*.cpp" "src/server/*.h")
 add_executable(${PROJECT_NAME} ${SRC_FILES})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${RAYLIB_LIBRARY})

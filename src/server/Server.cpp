@@ -223,8 +223,8 @@ void Server::receiveAndHandleMsgs()
 			std::cout << "Client " << i << ": " << clientMsg << std::endl;
 			std::cout << "Client " << i << " sent command " << std::string(clientMsg) << std::endl;
 			int cmdIndex = std::stoi(std::string(clientMsg));
-			// TODO get client command from index
-			//processMsg((ClientCommand)std::stoi(clientMsg), i);
+			ClientCommand cmd = variant_from_index<ClientCommand>(cmdIndex);
+			processMsg(cmd, i);
 		}
 	}
 }
