@@ -72,6 +72,7 @@ void Game::lobbyMenu()
 	if (inGame)
 	{
 		nextScene();
+		return;
 	}
 
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
@@ -129,49 +130,40 @@ void Game::listenToServer()
 	{
 		if (client.isConnected())
 		{
-			std::string serverMsg = client.listenToServer();
-			if (serverMsg.find("new_client:") != std::string::npos)
+			ServerCommand cmd = client.listenToServer();
+
+			if (std::holds_alternative<NewClient>(cmd))
 			{
-				std::string name = serverMsg.substr(11);
-				Client newClient;
-				newClient.init(name);
-				otherClients.push_back(newClient);
+				NewClient newClient = std::get<NewClient>(cmd);
+				Client c;
+				c.init(newClient.name);
+				otherClients.push_back(c);
 			}
-			else if (serverMsg.find("client_ready:") != std::string::npos)
+			else if (std::holds_alternative<ClientReady>(cmd))
 			{
-				std::string name = serverMsg.substr(13);
+				ClientReady ready = std::get<ClientReady>(cmd);
 				for (auto& c : otherClients)
 				{
-					if (c.getName() == name)
+					if (c.getName() == ready.name)
 					{
-						c.setReady(true);
+						c.setReady(ready.ready);
 					}
 				}
 			}
-			else if (serverMsg.find("client_not_ready:") != std::string::npos)
+			else if (std::holds_alternative<ClientDisconnected>(cmd))
 			{
-				std::string name = serverMsg.substr(17);
-				for (auto& c : otherClients)
-				{
-					if (c.getName() == name)
-					{
-						c.setReady(false);
-					}
-				}
-			}
-			else if (serverMsg.find("client_disconnected:") != std::string::npos)
-			{
-				std::string name = serverMsg.substr(20);
+				ClientDisconnected disconnected = std::get<ClientDisconnected>(cmd);
 				for (int i = 0; i < otherClients.size(); i++)
 				{
-					if (otherClients[i].getName() == name)
+					if (otherClients[i].getName() == disconnected.name)
 					{
 						otherClients.erase(otherClients.begin() + i);
 					}
 				}
 			}
-			else if (serverMsg.find("start_game") != std::string::npos)
+			else if (std::holds_alternative<StartGame>(cmd))
 			{
+				std::cout << "Starting game!" << std::endl;
 				inGame = true;
 			}
 		}

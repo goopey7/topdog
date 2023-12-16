@@ -14,6 +14,7 @@
 
 #include "Client.h"
 #include "ClientCommands.h"
+#include <ServerCommands.h>
 
 class Server
 {
@@ -21,7 +22,7 @@ class Server
 		void startServer(int port);
 		void acceptIncomingClients();
 		void handleClientLobbyMsgs();
-		void sendToClients(const std::string& message, int indexToSkip = -1);
+		void sendToClients(const ServerCommand& cmd, int indexToSkip = -1);
 		bool clientsAreReady() const;
 		bool shouldClose() const { return bShouldClose; }
 		void runGame();

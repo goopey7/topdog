@@ -7,6 +7,7 @@
 int main()
 {
 	Game game;
+	SetTraceLogLevel(LOG_NONE);
 	SetWindowState(FLAG_WINDOW_RESIZABLE);
 	InitWindow(1280, 720, "TopDog");
 	game.init();

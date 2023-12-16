@@ -124,7 +124,7 @@ void Client::toggleReady()
 	sendToServer(Ready(isReady));
 }
 
-std::string Client::listenToServer()
+ServerCommand Client::listenToServer()
 {
 	std::string serverMsg;
 	char msg[1024];
@@ -132,10 +132,8 @@ std::string Client::listenToServer()
 	if (result == -1)
 	{
 		std::cerr << "Can't receive message from server";
-		return serverMsg;
 	}
-	serverMsg = msg;
-	return serverMsg;
+	return parseServerCommand(msg);
 }
 
 void Client::init(const std::string& name)

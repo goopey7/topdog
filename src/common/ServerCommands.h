@@ -6,37 +6,31 @@
 
 #include <boost/mp11.hpp>
 
-struct Disconnect
+struct StartGame
 {
 };
 
-struct Ready
+struct NewClient
 {
+	std::string name;
+};
+
+struct ClientDisconnected
+{
+	std::string name;
+};
+
+struct ClientReady
+{
+	std::string name;
 	bool ready;
 };
 
-struct UpdatePosition
-{
-	float x = 0;
-	float y = 0;
-};
+#define SERVER_COMMANDS StartGame, NewClient, ClientDisconnected, ClientReady
 
-struct UpdateVelocity
-{
-	float x = 0;
-	float y = 0;
-};
+using ServerCommand = std::variant<SERVER_COMMANDS>;
 
-struct UpdateRotation
-{
-	float angle = 0;
-};
-
-#define CLIENT_COMMANDS Disconnect, Ready, UpdatePosition, UpdateVelocity, UpdateRotation
-
-using ClientCommand = std::variant<CLIENT_COMMANDS>;
-
-#define STRINGIFY_COMMAND(cmd)                                                                     \
+#define STRINGIFY_SERVER_COMMAND(cmd)                                                              \
 	[&]()                                                                                          \
 	{                                                                                              \
 		std::stringstream ss;                                                                      \
@@ -45,18 +39,14 @@ using ClientCommand = std::variant<CLIENT_COMMANDS>;
 			{                                                                                      \
 				ss << cmd.index();                                                                 \
 				using T = std::decay_t<decltype(arg)>;                                             \
-				if constexpr (std::is_same_v<T, UpdatePosition> ||                                 \
-							  std::is_same_v<T, UpdateVelocity>)                                   \
+				if constexpr (std::is_same_v<T, NewClient> ||                                      \
+							  std::is_same_v<T, ClientDisconnected>)                               \
 				{                                                                                  \
-					ss << ":" << arg.x << ":" << arg.y;                                            \
+					ss << ":" << arg.name;                                                         \
 				}                                                                                  \
-				else if constexpr (std::is_same_v<T, UpdateRotation>)                              \
+				else if constexpr (std::is_same_v<T, ClientReady>)                                 \
 				{                                                                                  \
-					ss << ":" << arg.angle;                                                        \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, Ready>)                                       \
-				{                                                                                  \
-					ss << ":" << arg.ready;                                                        \
+					ss << ":" << arg.name << ":" << arg.ready;                                     \
 				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
@@ -65,13 +55,13 @@ using ClientCommand = std::variant<CLIENT_COMMANDS>;
 	}()
 
 // https://stackoverflow.com/questions/60564132/default-constructing-an-stdvariant-from-index
-template <typename V> auto variant_from_index(size_t index) -> V
+template <typename V> auto srv_variant_from_index(size_t index) -> V
 {
 	using namespace boost::mp11;
 	return mp_with_index<mp_size<V>>(index, [](auto I) { return V(std::in_place_index<I>); });
 }
 
-inline ClientCommand parseClientCommand(const std::string& str)
+inline ServerCommand parseServerCommand(const std::string& str)
 {
 	// split string by ':'
 	std::vector<std::string> tokens;
@@ -85,34 +75,27 @@ inline ClientCommand parseClientCommand(const std::string& str)
 		}
 	}
 
-	auto cmd = variant_from_index<ClientCommand>(std::stoi(tokens[0]));
+	auto cmd = srv_variant_from_index<ServerCommand>(std::stoi(tokens[0]));
 
-	// initialize structs with arguments if necessary
 	if (tokens.size() == 3)
 	{
-		if (std::holds_alternative<UpdatePosition>(cmd))
+		if (std::holds_alternative<ClientReady>(cmd))
 		{
-			std::get<UpdatePosition>(cmd).x = std::stof(tokens[1]);
-			std::get<UpdatePosition>(cmd).y = std::stof(tokens[2]);
-		}
-		else if (std::holds_alternative<UpdateVelocity>(cmd))
-		{
-			std::get<UpdateVelocity>(cmd).x = std::stof(tokens[1]);
-			std::get<UpdateVelocity>(cmd).y = std::stof(tokens[2]);
+			std::get<ClientReady>(cmd).name = tokens[1];
+			std::get<ClientReady>(cmd).ready = tokens[2] == "1";
 		}
 	}
 	else if (tokens.size() == 2)
 	{
-		if (std::holds_alternative<UpdateRotation>(cmd))
+		if (std::holds_alternative<ClientDisconnected>(cmd))
 		{
-			std::get<UpdateRotation>(cmd).angle = std::stof(tokens[1]);
+			std::get<ClientDisconnected>(cmd).name = tokens[1];
 		}
-		else if (std::holds_alternative<Ready>(cmd))
+		else if (std::holds_alternative<NewClient>(cmd))
 		{
-			std::get<Ready>(cmd).ready = std::stoi(tokens[1]);
+			std::get<NewClient>(cmd).name = tokens[1];
 		}
 	}
 
 	return cmd;
 }
-

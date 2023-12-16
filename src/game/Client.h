@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "ClientCommands.h"
+#include "ServerCommands.h"
 
 class Client
 {
@@ -20,7 +21,7 @@ class Client
 	void sendToServer(const ClientCommand& command);
 	void sendToServer(const std::string& message);
 	const std::string& getName() const;
-	std::string listenToServer();
+	ServerCommand listenToServer();
 	void toggleReady();
 	void setReady(bool ready);
 	void closeConnection();

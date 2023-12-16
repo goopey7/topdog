@@ -24,7 +24,7 @@ void Server::startServer(int port)
 	listen(serverSocket, 5);
 }
 
-void Server::sendToClients(const std::string& message, int indexToSkip)
+void Server::sendToClients(const ServerCommand& cmd, int indexToSkip)
 {
 	for (int i = 0; i < clients.size(); i++)
 	{
@@ -32,7 +32,8 @@ void Server::sendToClients(const std::string& message, int indexToSkip)
 		{
 			continue;
 		}
-		clients[i].sendMsg(message);
+		clients[i].sendMsg(STRINGIFY_SERVER_COMMAND(cmd));
+		std::cout << "Sent message to client " << i << ": " << STRINGIFY_SERVER_COMMAND(cmd) << std::endl;
 	}
 }
 
@@ -114,8 +115,8 @@ void Server::acceptIncomingClients()
 
 		std::cout << "Accpt: Client " << clients.size() << ": " << clientMsg << std::endl;
 		std::cout << "Accpt: Client " << clients.size() << " connected!" << std::endl;
-		clients.emplace_back(clientSocket, std::string(clientMsg));
-		sendToClients("new_client:" + std::string(clientMsg), clients.size() - 1);
+		clients.emplace_back(clientSocket, clientMsg);
+		sendToClients(NewClient(clientMsg), clients.size() - 1);
 	}
 }
 
@@ -125,7 +126,7 @@ void Server::handleClientLobbyMsgs()
 	{
 		receiveAndHandleMsgs();
 	}
-	sendToClients("start_game");
+	sendToClients(StartGame());
 }
 
 void Server::runGame()
@@ -153,23 +154,14 @@ void Server::processMsg(const ClientCommand msg, int index)
 	if (std::holds_alternative<Disconnect>(msg))
 	{
 		std::cout << "Client " << index << " disconnected!" << std::endl;
-		sendToClients("client_disconnected:" + clients[index].getName(), index);
+		sendToClients(ClientDisconnected(clients[index].getName()), index);
 		clients.erase(clients.begin() + index);
 	}
 	else if (std::holds_alternative<Ready>(msg))
 	{
 		Ready readyCmd = std::get<Ready>(msg);
 		clients[index].setReady(readyCmd.ready);
-		if (readyCmd.ready)
-		{
-			std::cout << "Client " << index << " is ready!" << std::endl;
-			sendToClients("client_ready:" + clients[index].getName(), index);
-		}
-		else
-		{
-			std::cout << "Client " << index << " is not ready!" << std::endl;
-			sendToClients("client_not_ready:" + clients[index].getName(), index);
-		}
+		sendToClients(ClientReady(clients[index].getName(), readyCmd.ready), index);
 	}
 	else if (std::holds_alternative<UpdatePosition>(msg))
 	{
@@ -231,7 +223,7 @@ void Server::receiveAndHandleMsgs()
 			}
 			std::cout << "Client " << i << ": " << clientMsg << std::endl;
 			std::cout << "Client " << i << " sent command " << std::string(clientMsg) << std::endl;
-			auto cmd = parseCommand(clientMsg);
+			auto cmd = parseClientCommand(clientMsg);
 			processMsg(cmd, i);
 		}
 	}
