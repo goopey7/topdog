@@ -17,6 +17,12 @@ class Ship
 		const std::vector<Bullet>& getBullets() const { return bullets; }
 		Rectangle getCollisionRect() const;
 		const std::string& getName() const { return name; }
+
+		const Vector2& getPosition() const { return position; }
+		const Vector2& getVelocity() const { return velocity; }
+		float getRotation() const { return rotation; }
+
+		void setPosition(const Vector2& position) { this->position = position; }
 	private:
 		Vector2 position = { 320, 100 };
 		Vector2 velocity = { 0, 0 };

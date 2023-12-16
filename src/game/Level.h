@@ -6,6 +6,7 @@
 #include "Ship.h"
 #include <memory>
 #include <queue>
+#include <thread>
 
 class Level : public Scene
 {
@@ -14,11 +15,15 @@ class Level : public Scene
 	Level& operator=(const Level&) = delete;
 	Level(std::queue<std::unique_ptr<Scene>>* scenes, Client* client,
 		  const std::vector<Client>* clients);
+	~Level();
 
 	void init() final;
 	void update(float dt) final;
 	void draw() final;
 	void transitionToMainMenu();
+
+	void updateServer();
+	void updateClient();
 
   private:
 	Ship ship;
@@ -26,4 +31,8 @@ class Level : public Scene
 	std::queue<std::unique_ptr<Scene>>* scenes;
 	Client* client;
 	const std::vector<Client>* otherClients;
+	std::thread* updateServerThread;
+	std::thread* updateClientThread;
+
+	Vector2 lastPositionSent = {0, 0};
 };

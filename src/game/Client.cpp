@@ -100,7 +100,7 @@ const std::vector<Client> Client::connectToServer(const std::string& ip, int por
 
 void Client::sendToServer(const ClientCommand& command)
 {
-	std::string message = STRINGIFY_COMMAND(command);
+	std::string message = STRINGIFY_CLIENT_COMMAND(command);
 	send(clientSocket, message.c_str(), message.size() + 1, 0);
 }
 

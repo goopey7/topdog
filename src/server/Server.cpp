@@ -33,7 +33,6 @@ void Server::sendToClients(const ServerCommand& cmd, int indexToSkip)
 			continue;
 		}
 		clients[i].sendMsg(STRINGIFY_SERVER_COMMAND(cmd));
-		std::cout << "Sent message to client " << i << ": " << STRINGIFY_SERVER_COMMAND(cmd) << std::endl;
 	}
 }
 
@@ -165,9 +164,9 @@ void Server::processMsg(const ClientCommand msg, int index)
 	}
 	else if (std::holds_alternative<UpdatePosition>(msg))
 	{
+		std::string name = clients[index].getName();
 		UpdatePosition pos = std::get<UpdatePosition>(msg);
-		std::cout << "Client " << index << " updated position to (" << pos.x << ", " << pos.y
-				  << ")\n";
+		sendToClients(ClientUpdatePosition(name, pos.x, pos.y), index);
 	}
 }
 
@@ -221,8 +220,6 @@ void Server::receiveAndHandleMsgs()
 				std::cerr << "Can't receive message from client" << std::endl;
 				continue;
 			}
-			std::cout << "Client " << i << ": " << clientMsg << std::endl;
-			std::cout << "Client " << i << " sent command " << std::string(clientMsg) << std::endl;
 			auto cmd = parseClientCommand(clientMsg);
 			processMsg(cmd, i);
 		}

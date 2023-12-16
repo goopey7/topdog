@@ -36,7 +36,7 @@ struct UpdateRotation
 
 using ClientCommand = std::variant<CLIENT_COMMANDS>;
 
-#define STRINGIFY_COMMAND(cmd)                                                                     \
+#define STRINGIFY_CLIENT_COMMAND(cmd)                                                                     \
 	[&]()                                                                                          \
 	{                                                                                              \
 		std::stringstream ss;                                                                      \
