@@ -6,6 +6,7 @@
 #include "Ship.h"
 #include <memory>
 #include <queue>
+#include <map>
 
 class Level : public Scene
 {
@@ -30,11 +31,14 @@ class Level : public Scene
 	Client* client;
 	const std::vector<Client>* otherClients;
 
+	Vector2 lastPositionSent = {0.f, 0.f};
 	Vector2 lastVelocitySent = {-1.f, -12.f};
 	float lastRotationSent = -1.f;
 
-	float clientUpdateRate = 1.f / 5.f;
-	float clientSendRate = 1.f / 5.f;
+	float clientUpdateRate = 0.5f;
+	float clientSendRate = 0.5f;
 	float timeSinceLastUpdate = 0;
 	float timeSinceLastSend = 0;
+
+	std::map<Ship*, std::vector<ClientUpdateStatus>> clientUpdates;
 };

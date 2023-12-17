@@ -6,12 +6,13 @@
 #include <raylib.h>
 #include <cstdint>
 #include <string>
+#include <map>
 #include "Client.h"
 
 class Ship
 {
 	public:
-		void init(bool playerControlled, const std::string& name, Client* client);
+		void init(bool playerControlled, const std::string& name, Client* client, std::map<Ship*, std::vector<ClientUpdateStatus>>* clientUpdates);
 		void update(float dt);
 		void draw();
 		void onCollision(const Bullet& other);
@@ -56,4 +57,5 @@ class Ship
 		float lastRotation = 0;
 
 		Client* client;
+		std::map<Ship*, std::vector<ClientUpdateStatus>>* clientUpdates;
 };

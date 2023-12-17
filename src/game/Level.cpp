@@ -6,11 +6,11 @@
 
 void Level::init()
 {
-	ship.init(true, client->getName(), client);
+	ship.init(true, client->getName(), client, nullptr);
 	for (const Client& c : *otherClients)
 	{
 		Ship otherShip;
-		otherShip.init(false, c.getName(), nullptr);
+		otherShip.init(false, c.getName(), nullptr, &clientUpdates);
 		otherShips.push_back(otherShip);
 	}
 }
@@ -109,13 +109,15 @@ void Level::updateServer()
 		return;
 	}
 
-	if ((lastVelocitySent.x != ship.getVelocity().x &&
+	if ((lastPositionSent.x != ship.getPosition().x ||
+		 lastPositionSent.y != ship.getPosition().y) ||
+		(lastVelocitySent.x != ship.getVelocity().x ||
 		 lastVelocitySent.y != ship.getVelocity().y) ||
 		(lastRotationSent != ship.getRotation()))
 	{
 		auto us = UpdateStatus(ship.getPosition().x, ship.getPosition().y, ship.getVelocity().x,
 							   ship.getVelocity().y, ship.getRotation(), false,
-							   ship.getRotationDirection());
+							   ship.getRotationDirection(), GetTime());
 		client->sendToServer(us);
 		timeSinceLastSend = 0;
 
@@ -157,6 +159,11 @@ void Level::updateClient()
 				{
 					otherShip.fire();
 				}
+				if (clientUpdates[&otherShip].size() == 3)
+				{
+					clientUpdates[&otherShip].erase(clientUpdates[&otherShip].begin());
+				}
+				clientUpdates[&otherShip].push_back(std::get<ClientUpdateStatus>(cmd));
 				break;
 			}
 		}

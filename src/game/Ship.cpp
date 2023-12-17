@@ -5,7 +5,8 @@
 
 #include "ClientCommands.h"
 
-void Ship::init(bool playerControlled, const std::string& name, Client* client)
+void Ship::init(bool playerControlled, const std::string& name, Client* client,
+				std::map<Ship*, std::vector<ClientUpdateStatus>>* clientUpdates)
 {
 	textures.push_back(LoadTexture("res/sprites/shipIdle.png"));
 	textures.push_back(LoadTexture("res/sprites/shipActive.png"));
@@ -15,6 +16,7 @@ void Ship::init(bool playerControlled, const std::string& name, Client* client)
 	this->playerControlled = playerControlled;
 	this->name = name;
 	this->client = client;
+	this->clientUpdates = clientUpdates;
 }
 
 void Ship::handleInput(float dt)
@@ -77,7 +79,6 @@ void Ship::handleInput(float dt)
 		auto us = UpdateStatus(position.x, position.y, velocity.x, velocity.y, rotation, true);
 		client->sendToServer(us);
 	}
-
 }
 
 void Ship::update(float dt)
@@ -85,14 +86,40 @@ void Ship::update(float dt)
 	if (playerControlled)
 	{
 		handleInput(dt);
+
+		position.x += velocity.x * dt;
+		position.y += velocity.y * dt;
+	}
+	else
+	{
+		float radians = rotation * (float)M_PI / 180.f;
+		if (clientUpdates->contains(this))
+		{
+			if (clientUpdates->at(this).size() == 3)
+			{
+				const ClientUpdateStatus msg0 = clientUpdates->at(this)[2];
+				const ClientUpdateStatus msg1 = clientUpdates->at(this)[1];
+				const ClientUpdateStatus msg2 = clientUpdates->at(this)[0];
+
+				float v0X = (msg1.posx - msg2.posx) / (msg1.time - msg2.time);
+				float v1X = (msg0.posx - msg1.posx) / (msg0.time - msg1.time);
+				float aX = (v0X - v1X) / (msg0.time - msg2.time);
+
+				float v0Y = (msg1.posy - msg2.posy) / (msg1.time - msg2.time);
+				float v1Y = (msg0.posy - msg1.posy) / (msg0.time - msg1.time);
+				float aY = (v0Y - v1Y) / (msg0.time - msg2.time);
+
+				float dt = GetTime() - msg0.time;
+
+				position.x = msg0.posx + v0X * dt + 0.5f * aX * dt * dt;
+				position.y = msg0.posy + v0Y * dt + 0.5f * aY * dt * dt;
+			}
+		}
 	}
 
 	rotation += rotating * rotationSpeed * dt;
 
 	calculateAnimation();
-
-	position.x += velocity.x * dt;
-	position.y += velocity.y * dt;
 
 	for (Bullet& bullet : bullets)
 	{

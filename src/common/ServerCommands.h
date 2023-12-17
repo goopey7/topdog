@@ -36,6 +36,7 @@ struct ClientUpdateStatus
 	float angle;
 	bool fire;
 	short rotating; // -1 = left, 0 = none, 1 = right
+	float time;
 };
 
 #define SERVER_COMMANDS StartGame, NewClient, ClientDisconnected, ClientReady, ClientUpdateStatus
@@ -64,7 +65,7 @@ using ServerCommand = std::variant<SERVER_COMMANDS>;
 				{                                                                                  \
 					ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx \
 					   << ":" << arg.vely << ":" << arg.angle << ":" << arg.fire << ":"            \
-					   << arg.rotating;                                                            \
+					   << arg.rotating << ":" << arg.time;                                         \
 				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
@@ -102,7 +103,7 @@ inline ServerCommand parseServerCommand(const std::string& str)
 		}
 	}
 
-	if (tokens.size() == 9)
+	if (tokens.size() == 10)
 	{
 		if (std::holds_alternative<ClientUpdateStatus>(cmd))
 		{
@@ -114,6 +115,7 @@ inline ServerCommand parseServerCommand(const std::string& str)
 			std::get<ClientUpdateStatus>(cmd).angle = std::stof(tokens[6]);
 			std::get<ClientUpdateStatus>(cmd).fire = std::stoi(tokens[7]);
 			std::get<ClientUpdateStatus>(cmd).rotating = std::stoi(tokens[8]);
+			std::get<ClientUpdateStatus>(cmd).time = std::stof(tokens[9]);
 		}
 	}
 	else if (tokens.size() == 3)
