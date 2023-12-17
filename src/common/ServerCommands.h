@@ -92,6 +92,13 @@ inline ServerCommand parseServerCommand(const std::string& str)
 	}
 
 	auto cmd = srv_variant_from_index<ServerCommand>(std::stoi(tokens[0]));
+	if (tokens.size() == 1)
+	{
+		if (std::holds_alternative<StartGame>(cmd))
+		{
+			printf("Start Game Received\n");
+		}
+	}
 
 	if (tokens.size() == 8)
 	{

@@ -26,11 +26,13 @@ class Server
 		bool clientsAreReady() const;
 		bool shouldClose() const { return bShouldClose; }
 		void runGame();
+		bool gameStarted() const { return bGameStarted; }
 	private:
 		int serverSocket;
 		std::vector<Client> clients;
 		void processMsg(const ClientCommand msg, int index);
 		void receiveAndHandleMsgs();
 		bool bShouldClose = false;
+		bool bGameStarted = false;
 };
 

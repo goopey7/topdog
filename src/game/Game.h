@@ -5,7 +5,6 @@
 #include "Client.h"
 #include <memory>
 #include <queue>
-#include <thread>
 
 class Game
 {

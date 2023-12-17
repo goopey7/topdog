@@ -21,6 +21,10 @@ void Server::startServer(int port)
 		throw std::runtime_error("Can't bind socket to IP/port");
 	}
 
+	// Set socket to non-blocking
+	int option = 1;
+	ioctl(serverSocket, FIONBIO, &option);
+
 	listen(serverSocket, 5);
 }
 
@@ -32,109 +36,142 @@ void Server::sendToClients(const ServerCommand& cmd, int indexToSkip)
 		{
 			continue;
 		}
+		if (std::holds_alternative<StartGame>(cmd))
+		{
+			std::cout << "Sending start game to client " << i << std::endl;
+		}
 		clients[i].sendMsg(STRINGIFY_SERVER_COMMAND(cmd));
 	}
 }
 
 void Server::acceptIncomingClients()
 {
-	while (true)
+	fd_set readSet;
+	int maxFd = 0;
+
+	FD_ZERO(&readSet);
+	FD_SET(serverSocket, &readSet);
+	maxFd = std::max(maxFd, serverSocket);
+
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 0;
+
+	int result = select(maxFd + 1, &readSet, NULL, NULL, &timeout);
+	if (result == -1)
 	{
-		sockaddr_in clientAddr;
-		socklen_t clientAddrLen = sizeof(clientAddr);
-		int clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, &clientAddrLen);
+		std::cerr << "Can't select socket" << std::endl;
+		return;
+	}
 
-		char clientMsg[1024];
-		int result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
-		if (result == -1)
-		{
-			std::cerr << "Accpt: Can't receive message from client " << clients.size() << std::endl;
-			continue;
-		}
+	if (!FD_ISSET(serverSocket, &readSet))
+	{
+		return;
+	}
 
-		std::cout << "Accpt: Client " << clients.size() << ": " << clientMsg << std::endl;
+	sockaddr_in clientAddr;
+	socklen_t clientAddrLen = sizeof(clientAddr);
+	int clientSocket = accept(serverSocket, (sockaddr*)&clientAddr, &clientAddrLen);
+	if (clientSocket == -1)
+	{
+		std::cerr << "Can't accept client socket" << std::endl;
+		return;
+	}
 
-		std::string msg = "Welcome to the server!";
-		result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
-		if (result == -1)
-		{
-			std::cerr << "Accpt: Can't send message to client " << clients.size() << std::endl;
-			continue;
-		}
+	char clientMsg[1024];
+	result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
+	if (result == -1)
+	{
+		std::cerr << "Accpt-1: Can't receive message from client " << clients.size() << std::endl;
+		return;
+	}
 
-		result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
-		if (result == -1)
-		{
-			std::cerr << "Accpt: Can't receive message from client " << clients.size() << std::endl;
-			continue;
-		}
+	std::cout << "Accpt: Client " << clients.size() << ": " << clientMsg << std::endl;
 
-		if (std::string(clientMsg) != msg)
-		{
-			msg = "Accpt: Erroneous data received from client";
-			send(clientSocket, msg.c_str(), msg.size() + 1, 0);
-			std::cerr << msg << std::endl;
-			continue;
-		}
+	std::string msg = "Welcome to the server!";
+	result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
+	if (result == -1)
+	{
+		std::cerr << "Accpt-2: Can't send message to client " << clients.size() << std::endl;
+		return;
+	}
 
-		msg = "get_lobby_info:";
-		for (int i = 0; i < clients.size(); i++)
-		{
-			msg += clients[i].getName();
-			msg += ":";
-			msg += clients[i].isReady() ? "1" : "0";
-			if (i != clients.size() - 1)
-			{
-				msg += ",";
-			}
-		}
-		if (clients.size() > 0)
+	result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
+	if (result == -1)
+	{
+		std::cerr << "Accpt-3: Can't receive message from client " << clients.size() << std::endl;
+		return;
+	}
+
+	if (std::string(clientMsg) != msg)
+	{
+		msg = "Accpt: Erroneous data received from client";
+		send(clientSocket, msg.c_str(), msg.size() + 1, 0);
+		std::cerr << msg << std::endl;
+		return;
+	}
+
+	msg = "get_lobby_info:";
+	for (int i = 0; i < clients.size(); i++)
+	{
+		msg += clients[i].getName();
+		msg += ":";
+		msg += clients[i].isReady() ? "1" : "0";
+		if (i != clients.size() - 1)
 		{
 			msg += ",";
 		}
-		else
-		{
-			msg += ";";
-		}
-
-		result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
-		result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
-		if (result == -1)
-		{
-			std::cerr << "Accpt: Can't receive message from client " << clients.size() << std::endl;
-			continue;
-		}
-
-		msg = "success";
-		result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
-
-		// Set socket to non-blocking
-		int option = 1;
-		ioctl(clientSocket, FIONBIO, &option);
-
-		std::cout << "Accpt: Client " << clients.size() << ": " << clientMsg << std::endl;
-		std::cout << "Accpt: Client " << clients.size() << " connected!" << std::endl;
-		clients.emplace_back(clientSocket, clientMsg);
-		sendToClients(NewClient(clientMsg), clients.size() - 1);
 	}
+	if (clients.size() > 0)
+	{
+		msg += ",";
+	}
+	else
+	{
+		msg += ";";
+	}
+
+	result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
+	result = recv(clientSocket, clientMsg, sizeof(clientMsg), 0);
+	if (result == -1)
+	{
+		std::cerr << "Accpt-4: Can't receive message from client " << clients.size() << std::endl;
+		return;
+	}
+
+	msg = "success";
+	result = send(clientSocket, msg.c_str(), msg.size() + 1, 0);
+
+	std::cout << "Accpt: Client " << clients.size() << ": " << clientMsg << std::endl;
+	std::cout << "Accpt: Client " << clients.size() << " connected!" << std::endl;
+
+	// Set socket to non-blocking
+	int option = 1;
+	ioctl(clientSocket, FIONBIO, &option);
+
+	clients.emplace_back(clientSocket, clientMsg);
+	sendToClients(NewClient(clientMsg), clients.size() - 1);
 }
 
 void Server::handleClientLobbyMsgs()
 {
-	while (!clientsAreReady() || clients.size() < 2)
+	if (clients.empty())
+	{
+		return;
+	}
+
+	if (!clientsAreReady() || clients.size() < 2)
 	{
 		receiveAndHandleMsgs();
 	}
-	sendToClients(StartGame());
+	else
+	{
+		sendToClients(StartGame());
+		bGameStarted = true;
+	}
 }
 
-void Server::runGame()
-{
-	while (true)
-	{
-		receiveAndHandleMsgs();
-	}
-}
+void Server::runGame() { receiveAndHandleMsgs(); }
 
 bool Server::clientsAreReady() const
 {
@@ -161,7 +198,10 @@ void Server::processMsg(const ClientCommand msg, int index)
 	{
 		Ready readyCmd = std::get<Ready>(msg);
 		clients[index].setReady(readyCmd.ready);
-		sendToClients(ClientReady(name, readyCmd.ready), index);
+		if (!clientsAreReady())
+		{
+			sendToClients(ClientReady(name, readyCmd.ready), index);
+		}
 	}
 	else if (std::holds_alternative<UpdateStatus>(msg))
 	{
@@ -176,11 +216,6 @@ void Server::receiveAndHandleMsgs()
 	fd_set readSet;
 	int maxFd = 0;
 
-	if (clients.empty())
-	{
-		return;
-	}
-
 	FD_ZERO(&readSet);
 
 	for (int i = 0; i < clients.size(); i++)
@@ -192,7 +227,8 @@ void Server::receiveAndHandleMsgs()
 
 	struct timeval timeout;
 	timeout.tv_sec = 0;
-	timeout.tv_usec = 100000;
+	timeout.tv_usec = 0;
+
 	int result = select(maxFd + 1, &readSet, NULL, NULL, &timeout);
 	if (result == -1)
 	{
@@ -221,6 +257,7 @@ void Server::receiveAndHandleMsgs()
 				std::cerr << "Can't receive message from client" << std::endl;
 				continue;
 			}
+			std::cout << "Client " << i << ": " << clientMsg << std::endl;
 			auto cmd = parseClientCommand(clientMsg);
 			processMsg(cmd, i);
 		}

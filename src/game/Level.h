@@ -15,7 +15,6 @@ class Level : public Scene
 	Level& operator=(const Level&) = delete;
 	Level(std::queue<std::unique_ptr<Scene>>* scenes, Client* client,
 		  const std::vector<Client>* clients);
-	~Level();
 
 	void init() final;
 	void update(float dt) final;
@@ -31,9 +30,12 @@ class Level : public Scene
 	std::queue<std::unique_ptr<Scene>>* scenes;
 	Client* client;
 	const std::vector<Client>* otherClients;
-	std::thread* updateServerThread;
-	std::thread* updateClientThread;
 
 	Vector2 lastVelocitySent = {0, 0};
 	float lastRotationSent = 0;
+
+	float clientUpdateRate = 1.0f / 30.0f;
+	float clientSendRate = 1.0f / 30.0f;
+	float timeSinceLastUpdate = 0;
+	float timeSinceLastSend = 0;
 };

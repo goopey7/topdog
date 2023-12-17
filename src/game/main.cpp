@@ -11,7 +11,6 @@ int main()
 	SetWindowState(FLAG_WINDOW_RESIZABLE);
 	InitWindow(1280, 720, "TopDog");
 	game.init();
-	std::thread clientListener = std::thread(&Game::listenToServer, &game);
 	rlImGuiSetup(true);
 
 	while (!WindowShouldClose())

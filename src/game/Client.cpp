@@ -79,6 +79,10 @@ const std::vector<Client> Client::connectToServer(const std::string& ip, int por
 		std::cout << "Server: " << serverMsg << std::endl;
 		isConnectedToServer = true;
 
+		// Set socket to non-blocking
+		int option = 1;
+		ioctl(clientSocket, FIONBIO, &option);
+
 		std::vector<Client> clients;
 		for (int i = 0; i < lobbyInfo.size(); i++)
 		{
@@ -101,6 +105,7 @@ const std::vector<Client> Client::connectToServer(const std::string& ip, int por
 void Client::sendToServer(const ClientCommand& command)
 {
 	std::string message = STRINGIFY_CLIENT_COMMAND(command);
+	std::cout << "Client: " << message << std::endl;
 	send(clientSocket, message.c_str(), message.size() + 1, 0);
 }
 
@@ -124,11 +129,34 @@ void Client::toggleReady()
 	sendToServer(Ready(isReady));
 }
 
-ServerCommand Client::listenToServer()
+std::optional<ServerCommand> Client::listenToServer()
 {
+	fd_set readSet;
+	int maxFd = 0;
+
+	FD_ZERO(&readSet);
+	FD_SET(clientSocket, &readSet);
+	maxFd = std::max(maxFd, clientSocket);
+
+	struct timeval timeout;
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 0;
+
+	int result = select(maxFd + 1, &readSet, NULL, NULL, &timeout);
+	if (result == -1)
+	{
+		std::cerr << "Can't select socket" << std::endl;
+		return std::nullopt;
+	}
+
+	if (!FD_ISSET(clientSocket, &readSet))
+	{
+		return std::nullopt;
+	}
+
 	std::string serverMsg;
 	char msg[1024];
-	int result = recv(clientSocket, msg, sizeof(msg), 0);
+	result = recv(clientSocket, msg, sizeof(msg), 0);
 	if (result == -1)
 	{
 		std::cerr << "Can't receive message from server";

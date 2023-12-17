@@ -13,8 +13,6 @@ void Level::init()
 		otherShip.init(false, c.getName(), nullptr);
 		otherShips.push_back(otherShip);
 	}
-	updateServerThread = new std::thread(&Level::updateServer, this);
-	updateClientThread = new std::thread(&Level::updateClient, this);
 }
 
 void Level::update(float dt)
@@ -54,6 +52,12 @@ void Level::update(float dt)
 		otherShip.update(dt);
 	}
 	ship.update(dt);
+
+	// send updates to server
+	timeSinceLastSend += dt;
+	timeSinceLastUpdate += dt;
+	updateServer();
+	updateClient();
 
 	// erase disconnected ships
 	if (otherShips.size() != otherClients->size())
@@ -100,63 +104,71 @@ Level::Level(std::queue<std::unique_ptr<Scene>>* scenes, Client* client,
 
 void Level::updateServer()
 {
-	while (true)
+	if (timeSinceLastUpdate < clientUpdateRate)
 	{
-		if ((lastVelocitySent.x != ship.getVelocity().x &&
-			 lastVelocitySent.y != ship.getVelocity().y) ||
-			(lastRotationSent != ship.getRotation()))
-		{
-			auto us = UpdateStatus(ship.getPosition().x, ship.getPosition().y, ship.getVelocity().x,
-								   ship.getVelocity().y, ship.getRotation(), false);
-			client->sendToServer(us);
-		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(5));
+		return;
+	}
+
+	if ((lastVelocitySent.x != ship.getVelocity().x &&
+		 lastVelocitySent.y != ship.getVelocity().y) ||
+		(lastRotationSent != ship.getRotation()) && !IsKeyDown(KEY_SPACE))
+	{
+		auto us = UpdateStatus(ship.getPosition().x, ship.getPosition().y, ship.getVelocity().x,
+							   ship.getVelocity().y, ship.getRotation(), false);
+		client->sendToServer(us);
+		timeSinceLastSend = 0;
+
+		lastVelocitySent = ship.getVelocity();
+		lastRotationSent = ship.getRotation();
 	}
 }
 
 void Level::updateClient()
 {
-	while (true)
+	if (timeSinceLastSend < clientSendRate)
 	{
-		ServerCommand cmd = client->listenToServer();
-		if (std::holds_alternative<ClientUpdateStatus>(cmd))
+		return;
+	}
+
+	std::optional<ServerCommand> cmdOpt = client->listenToServer();
+
+	if (!cmdOpt.has_value())
+	{
+		return;
+	}
+
+	auto cmd = cmdOpt.value();
+
+	if (std::holds_alternative<ClientUpdateStatus>(cmd))
+	{
+		// find the ship with the same name as the one in the command
+		for (Ship& otherShip : otherShips)
 		{
-			// find the ship with the same name as the one in the command
-			for (Ship& otherShip : otherShips)
+			if (otherShip.getName() == std::get<ClientUpdateStatus>(cmd).name)
 			{
-				if (otherShip.getName() == std::get<ClientUpdateStatus>(cmd).name)
+				otherShip.setPosition({std::get<ClientUpdateStatus>(cmd).posx,
+									   std::get<ClientUpdateStatus>(cmd).posy});
+				otherShip.setVelocity({std::get<ClientUpdateStatus>(cmd).velx,
+									   std::get<ClientUpdateStatus>(cmd).vely});
+				otherShip.setRotation(std::get<ClientUpdateStatus>(cmd).angle);
+				if (std::get<ClientUpdateStatus>(cmd).fire)
 				{
-					otherShip.setPosition({std::get<ClientUpdateStatus>(cmd).posx,
-										   std::get<ClientUpdateStatus>(cmd).posy});
-					otherShip.setVelocity({std::get<ClientUpdateStatus>(cmd).velx,
-										   std::get<ClientUpdateStatus>(cmd).vely});
-					otherShip.setRotation(std::get<ClientUpdateStatus>(cmd).angle);
-					if (std::get<ClientUpdateStatus>(cmd).fire)
-					{
-						otherShip.fire();
-					}
-					break;
+					otherShip.fire();
 				}
-			}
-		}
-		else if (std::holds_alternative<ClientDisconnected>(cmd))
-		{
-			for (int i = 0; i < otherShips.size(); i++)
-			{
-				if (otherShips[i].getName() == std::get<ClientDisconnected>(cmd).name)
-				{
-					otherShips.erase(otherShips.begin() + i);
-					break;
-				}
+				break;
 			}
 		}
 	}
-}
-
-Level::~Level()
-{
-	updateServerThread->detach();
-	updateClientThread->detach();
-	delete updateServerThread;
-	delete updateClientThread;
+	else if (std::holds_alternative<ClientDisconnected>(cmd))
+	{
+		for (int i = 0; i < otherShips.size(); i++)
+		{
+			if (otherShips[i].getName() == std::get<ClientDisconnected>(cmd).name)
+			{
+				otherShips.erase(otherShips.begin() + i);
+				break;
+			}
+		}
+	}
+	timeSinceLastUpdate = 0;
 }

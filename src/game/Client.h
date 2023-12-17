@@ -4,11 +4,13 @@
 #ifndef WIN32_
 	#include <arpa/inet.h>
 	#include <sys/socket.h>
+	#include <sys/ioctl.h>
 	#include <unistd.h>
 #endif
 
 #include <string>
 #include <vector>
+#include <optional>
 
 #include "ClientCommands.h"
 #include "ServerCommands.h"
@@ -21,7 +23,7 @@ class Client
 	void sendToServer(const ClientCommand& command);
 	void sendToServer(const std::string& message);
 	const std::string& getName() const;
-	ServerCommand listenToServer();
+	std::optional<ServerCommand> listenToServer();
 	void toggleReady();
 	void setReady(bool ready);
 	void closeConnection();

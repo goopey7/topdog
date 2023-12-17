@@ -7,9 +7,14 @@ int main()
 	server.startServer(4916);
 	while (!server.shouldClose())
 	{
-		std::thread acceptIncomingClients(&Server::acceptIncomingClients, &server);
-		server.handleClientLobbyMsgs();
-		acceptIncomingClients.detach();
-		server.runGame();
+		if (!server.gameStarted())
+		{
+			server.acceptIncomingClients();
+			server.handleClientLobbyMsgs();
+		}
+		else
+		{
+			server.runGame();
+		}
 	}
 }
