@@ -6,7 +6,6 @@
 #include "Ship.h"
 #include <memory>
 #include <queue>
-#include <thread>
 
 class Level : public Scene
 {
@@ -34,8 +33,8 @@ class Level : public Scene
 	Vector2 lastVelocitySent = {-1.f, -12.f};
 	float lastRotationSent = -1.f;
 
-	float clientUpdateRate = 1.0f / 10.0f;
-	float clientSendRate = 1.0f / 10.0f;
+	float clientUpdateRate = 1.f / 5.f;
+	float clientSendRate = 1.f / 5.f;
 	float timeSinceLastUpdate = 0;
 	float timeSinceLastSend = 0;
 };

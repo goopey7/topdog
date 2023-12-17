@@ -20,6 +20,7 @@ void Ship::init(bool playerControlled, const std::string& name, Client* client)
 void Ship::handleInput(float dt)
 {
 	float radians = rotation * (float)M_PI / 180.f;
+	rotating = 0;
 
 	if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W))
 	{
@@ -39,8 +40,6 @@ void Ship::handleInput(float dt)
 
 	if (IsKeyDown(KEY_LEFT) || IsKeyDown(KEY_A))
 	{
-		// rotate left
-		rotation -= rotationSpeed * dt;
 		if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W) || IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S))
 		{
 			animationIndex = 3;
@@ -50,11 +49,10 @@ void Ship::handleInput(float dt)
 			animationIndex = 2;
 		}
 		animFlip = false;
+		rotating = -1;
 	}
 	if (IsKeyDown(KEY_RIGHT) || IsKeyDown(KEY_D))
 	{
-		// rotate right
-		rotation += rotationSpeed * dt;
 		if (IsKeyDown(KEY_UP) || IsKeyDown(KEY_W) || IsKeyDown(KEY_DOWN) || IsKeyDown(KEY_S))
 		{
 			animationIndex = 3;
@@ -64,6 +62,7 @@ void Ship::handleInput(float dt)
 			animationIndex = 2;
 		}
 		animFlip = true;
+		rotating = 1;
 	}
 
 	if (!IsKeyDown(KEY_UP) && !IsKeyDown(KEY_W) && !IsKeyDown(KEY_DOWN) && !IsKeyDown(KEY_S) &&
@@ -78,6 +77,7 @@ void Ship::handleInput(float dt)
 		auto us = UpdateStatus(position.x, position.y, velocity.x, velocity.y, rotation, true);
 		client->sendToServer(us);
 	}
+
 }
 
 void Ship::update(float dt)
@@ -86,6 +86,8 @@ void Ship::update(float dt)
 	{
 		handleInput(dt);
 	}
+
+	rotation += rotating * rotationSpeed * dt;
 
 	calculateAnimation();
 

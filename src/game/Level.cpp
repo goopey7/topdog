@@ -104,7 +104,7 @@ Level::Level(std::queue<std::unique_ptr<Scene>>* scenes, Client* client,
 
 void Level::updateServer()
 {
-	if (timeSinceLastUpdate < clientUpdateRate)
+	if (timeSinceLastSend < clientSendRate)
 	{
 		return;
 	}
@@ -114,7 +114,8 @@ void Level::updateServer()
 		(lastRotationSent != ship.getRotation()))
 	{
 		auto us = UpdateStatus(ship.getPosition().x, ship.getPosition().y, ship.getVelocity().x,
-							   ship.getVelocity().y, ship.getRotation(), false);
+							   ship.getVelocity().y, ship.getRotation(), false,
+							   ship.getRotationDirection());
 		client->sendToServer(us);
 		timeSinceLastSend = 0;
 
@@ -125,7 +126,7 @@ void Level::updateServer()
 
 void Level::updateClient()
 {
-	if (timeSinceLastSend < clientSendRate)
+	if (timeSinceLastUpdate < clientUpdateRate)
 	{
 		return;
 	}
@@ -151,6 +152,7 @@ void Level::updateClient()
 				otherShip.setVelocity({std::get<ClientUpdateStatus>(cmd).velx,
 									   std::get<ClientUpdateStatus>(cmd).vely});
 				otherShip.setRotation(std::get<ClientUpdateStatus>(cmd).angle);
+				otherShip.setRotationDirection(std::get<ClientUpdateStatus>(cmd).rotating);
 				if (std::get<ClientUpdateStatus>(cmd).fire)
 				{
 					otherShip.fire();

@@ -29,6 +29,9 @@ class Ship
 
 		void calculateAnimation();
 		void fire();
+
+		void setRotationDirection(short direction) { rotating = direction; }
+		short getRotationDirection() const { return rotating; }
 	private:
 		Vector2 position = { 320, 100 };
 		Vector2 velocity = { 0, 0 };
@@ -38,6 +41,7 @@ class Ship
 		std::vector<Bullet> bullets;
 		bool playerControlled;
 		bool isAlive = true;
+		short rotating = 0;
 
 		std::vector<Texture2D> textures;
 

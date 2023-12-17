@@ -206,8 +206,9 @@ void Server::processMsg(const ClientCommand msg, int index)
 	else if (std::holds_alternative<UpdateStatus>(msg))
 	{
 		UpdateStatus us = std::get<UpdateStatus>(msg);
-		sendToClients(
-			ClientUpdateStatus(name, us.posx, us.posy, us.velx, us.vely, us.angle, us.fire), index);
+		sendToClients(ClientUpdateStatus(name, us.posx, us.posy, us.velx, us.vely, us.angle,
+										 us.fire, us.rotating),
+					  index);
 	}
 }
 
