@@ -31,11 +31,11 @@ class Level : public Scene
 	Client* client;
 	const std::vector<Client>* otherClients;
 
-	Vector2 lastVelocitySent = {0, 0};
-	float lastRotationSent = 0;
+	Vector2 lastVelocitySent = {-1.f, -12.f};
+	float lastRotationSent = -1.f;
 
-	float clientUpdateRate = 1.0f / 30.0f;
-	float clientSendRate = 1.0f / 30.0f;
+	float clientUpdateRate = 1.0f / 10.0f;
+	float clientSendRate = 1.0f / 10.0f;
 	float timeSinceLastUpdate = 0;
 	float timeSinceLastSend = 0;
 };

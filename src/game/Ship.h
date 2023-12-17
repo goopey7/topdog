@@ -32,7 +32,7 @@ class Ship
 	private:
 		Vector2 position = { 320, 100 };
 		Vector2 velocity = { 0, 0 };
-		float rotation = 0;
+		float rotation = 12;
 		float rotationSpeed = 200.f;
 		float acceleration = 100.f;
 		std::vector<Bullet> bullets;

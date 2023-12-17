@@ -168,8 +168,7 @@ void Game::listenToServer()
 				}
 			}
 		}
-
-		if (std::holds_alternative<StartGame>(cmd))
+		else if (std::holds_alternative<StartGame>(cmd))
 		{
 			std::cout << "Starting game!" << std::endl;
 			inGame = true;

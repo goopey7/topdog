@@ -111,7 +111,7 @@ void Level::updateServer()
 
 	if ((lastVelocitySent.x != ship.getVelocity().x &&
 		 lastVelocitySent.y != ship.getVelocity().y) ||
-		(lastRotationSent != ship.getRotation()) && !IsKeyDown(KEY_SPACE))
+		(lastRotationSent != ship.getRotation()))
 	{
 		auto us = UpdateStatus(ship.getPosition().x, ship.getPosition().y, ship.getVelocity().x,
 							   ship.getVelocity().y, ship.getRotation(), false);
