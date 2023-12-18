@@ -130,13 +130,11 @@ void Server::processMsg(const ClientCommand msg, int index, const std::string& d
 	}
 	else if (std::holds_alternative<RotStart>(msg))
 	{
-		std::cout << "RotStart: " << debug << std::endl;
 		RotStart ur = std::get<RotStart>(msg);
 		sendToClientsTCP(ClientRotStart(name, ur.angle, ur.dir, ur.time), index);
 	}
 	else if (std::holds_alternative<RotEnd>(msg))
 	{
-		std::cout << "RotEnd: " << debug << std::endl;
 		RotEnd ur = std::get<RotEnd>(msg);
 		sendToClientsTCP(ClientRotEnd(name, ur.angle, ur.time), index);
 	}

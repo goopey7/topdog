@@ -37,6 +37,8 @@ class Ship
 
 		void startRotation(float angle, short direction, float time);
 		void endRotation(float angle);
+
+		void takeDamage(float damage);
 	private:
 		Vector2 position = { 320, 100 };
 		Vector2 velocity = { 0, 0 };
@@ -47,6 +49,8 @@ class Ship
 		bool playerControlled;
 		bool isAlive = true;
 		short rotating = 0;
+
+		float health = 100.f;
 
 		std::vector<Texture2D> textures;
 

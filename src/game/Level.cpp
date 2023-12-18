@@ -27,6 +27,7 @@ void Level::update(float dt)
 										otherShip.getCollisionRect()))
 			{
 				ship.getBullets().erase(ship.getBullets().begin() + i);
+				otherShip.onCollision(ship.getBullets()[i]);
 				break;
 			}
 		}
@@ -41,6 +42,7 @@ void Level::update(float dt)
 										ship.getCollisionRect()))
 			{
 				otherShips[i].getBullets().erase(otherShips[i].getBullets().begin() + j);
+				ship.onCollision(otherShips[i].getBullets()[j]);
 				break;
 			}
 
@@ -55,6 +57,7 @@ void Level::update(float dt)
 											otherShips[k].getCollisionRect()))
 				{
 					otherShips[i].getBullets().erase(otherShips[i].getBullets().begin() + j);
+					otherShips[k].onCollision(otherShips[i].getBullets()[j]);
 					break;
 				}
 			}

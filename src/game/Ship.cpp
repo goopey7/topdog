@@ -85,7 +85,6 @@ void Ship::update(float dt)
 	if (playerControlled)
 	{
 		handleInput(dt);
-
 	}
 	else
 	{
@@ -136,7 +135,7 @@ void Ship::fire()
 	bullets.emplace_back(position, rotation);
 }
 
-void Ship::onCollision(const Bullet& other) { isAlive = false; }
+void Ship::onCollision(const Bullet& other) { takeDamage(20.f); }
 
 void Ship::draw()
 {
@@ -209,3 +208,11 @@ void Ship::endRotation(float angle)
 	rotating = 0;
 }
 
+void Ship::takeDamage(float damage)
+{
+	health -= damage;
+	if (health <= 0)
+	{
+		isAlive = false;
+	}
+}
