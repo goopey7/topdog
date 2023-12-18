@@ -28,4 +28,5 @@ class Game
 	std::vector<Client> otherClients;
 	std::string nameInput;
 	bool inGame = false;
+	long long gameStartTime = 0;
 };

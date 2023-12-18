@@ -2,68 +2,73 @@
 #pragma once
 
 #include "Bullet.h"
-#include <vector>
-#include <raylib.h>
-#include <cstdint>
-#include <string>
-#include <map>
 #include "Client.h"
+#include <cstdint>
+#include <map>
+#include <raylib.h>
+#include <string>
+#include <vector>
 
 class Ship
 {
-	public:
-		void init(bool playerControlled, const std::string& name, Client* client, std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates);
-		void update(float dt);
-		void draw();
-		void onCollision(const Bullet& other);
-		std::vector<Bullet>& getBullets() { return bullets; }
-		Rectangle getCollisionRect() const;
-		const std::string& getName() const { return name; }
+  public:
+	void init(bool playerControlled, const std::string& name, Client* client,
+			  std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates,
+			  long long gameStartTime);
+	void update(float dt);
+	void draw();
+	void onCollision(const Bullet& other);
+	std::vector<Bullet>& getBullets() { return bullets; }
+	Rectangle getCollisionRect() const;
+	const std::string& getName() const { return name; }
 
-		const Vector2& getPosition() const { return position; }
-		const Vector2& getVelocity() const { return velocity; }
-		float getRotation() const { return rotation; }
+	const Vector2& getPosition() const { return position; }
+	const Vector2& getVelocity() const { return velocity; }
+	float getRotation() const { return rotation; }
 
-		void setPosition(const Vector2& position) { this->position = position; }
-		void setVelocity(const Vector2& velocity) { this->velocity = velocity; }
-		void setRotation(float rotation) { this->rotation = rotation; }
+	void setPosition(const Vector2& position) { this->position = position; }
+	void setVelocity(const Vector2& velocity) { this->velocity = velocity; }
+	void setRotation(float rotation) { this->rotation = rotation; }
 
-		void calculateAnimation();
-		void fire();
-		void fire(float posx, float posy, float velx, float vely, float time);
+	void calculateAnimation();
+	void fire();
+	void fire(float posx, float posy, float velx, float vely, float time);
 
-		void setRotationDirection(short direction) { rotating = direction; }
-		short getRotationDirection() const { return rotating; }
+	void setRotationDirection(short direction) { rotating = direction; }
+	short getRotationDirection() const { return rotating; }
 
-		void startRotation(float angle, short direction, float time);
-		void endRotation(float angle);
+	void startRotation(float angle, short direction, float time);
+	void endRotation(float angle);
 
-		void takeDamage(float damage);
-	private:
-		Vector2 position = { 320, 100 };
-		Vector2 velocity = { 0, 0 };
-		float rotation = 12;
-		float rotationSpeed = 200.f;
-		float acceleration = 100.f;
-		std::vector<Bullet> bullets;
-		bool playerControlled;
-		bool isAlive = true;
-		short rotating = 0;
+	void takeDamage(float damage);
 
-		float health = 100.f;
+  private:
+	Vector2 position = {320, 100};
+	Vector2 velocity = {0, 0};
+	float rotation = 12;
+	float rotationSpeed = 200.f;
+	float acceleration = 100.f;
+	std::vector<Bullet> bullets;
+	bool playerControlled;
+	bool isAlive = true;
+	short rotating = 0;
 
-		std::vector<Texture2D> textures;
+	float health = 100.f;
 
-		uint32_t animationIndex = 0;
-		bool animFlip = false;
+	std::vector<Texture2D> textures;
 
-		void handleInput(float dt);
+	uint32_t animationIndex = 0;
+	bool animFlip = false;
 
-		std::string name;
+	void handleInput(float dt);
 
-		Vector2 lastVelocity = { 0, 0 };
-		float lastRotation = 0;
+	std::string name;
 
-		Client* client;
-		std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates;
+	Vector2 lastVelocity = {0, 0};
+	float lastRotation = 0;
+
+	Client* client;
+	std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates;
+
+	long long gameStartTime;
 };

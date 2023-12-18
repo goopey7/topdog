@@ -13,6 +13,7 @@
 
 struct StartGame
 {
+	double time;
 };
 
 struct NewClient
@@ -120,6 +121,10 @@ using ServerCommand = std::variant<SERVER_COMMANDS>;
 					ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx \
 					   << ":" << arg.vely << ":" << arg.time;                                      \
 				}                                                                                  \
+				else if constexpr (std::is_same_v<T, StartGame>)                                   \
+				{                                                                                  \
+					ss << ":" << arg.time;                                                         \
+				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
 		ss << ":";                                                                                 \
@@ -217,6 +222,10 @@ inline ServerCommand parseServerCommand(const std::string& str)
 		else if (std::holds_alternative<NewClient>(cmd))
 		{
 			std::get<NewClient>(cmd).name = tokens[1];
+		}
+		else if (std::holds_alternative<StartGame>(cmd))
+		{
+			std::get<StartGame>(cmd).time = std::stof(tokens[1]);
 		}
 	}
 

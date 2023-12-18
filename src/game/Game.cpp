@@ -14,7 +14,7 @@ void Game::init()
 {
 	scenes.push(std::make_unique<Menu>([this]() { this->mainMenu(); }));
 	scenes.push(std::make_unique<Menu>([this]() { this->lobbyMenu(); }));
-	scenes.push(std::make_unique<Level>(&scenes, &client, &otherClients));
+	scenes.push(std::make_unique<Level>(&scenes, &client, &otherClients, &gameStartTime));
 	scenes.front()->init();
 }
 
@@ -175,6 +175,7 @@ void Game::listenToServer()
 			else if (std::holds_alternative<StartGame>(cmd))
 			{
 				std::cout << "Starting game!" << std::endl;
+				gameStartTime = std::get<StartGame>(cmd).time;
 				inGame = true;
 			}
 		}

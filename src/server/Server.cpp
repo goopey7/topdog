@@ -1,5 +1,6 @@
 // Sam Collier 2023
 #include "Server.h"
+#include "Time.h"
 #include <iostream>
 #include <string>
 
@@ -81,7 +82,7 @@ void Server::handleClientLobbyMsgs()
 	}
 	else
 	{
-		sendToClientsTCP(StartGame());
+		sendToClientsTCP(StartGame(GetTimeInNanosecondsSinceEpoch()));
 		bGameStarted = true;
 	}
 }

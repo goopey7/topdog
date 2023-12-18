@@ -3,11 +3,12 @@
 #include <algorithm>
 #include <cmath>
 #include <raylib.h>
+#include "Time.h"
 
 #include "ClientCommands.h"
 
 void Ship::init(bool playerControlled, const std::string& name, Client* client,
-				std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates)
+				std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates, long long gameStartTime)
 {
 	textures.push_back(LoadTexture("res/sprites/shipIdle.png"));
 	textures.push_back(LoadTexture("res/sprites/shipActive.png"));
@@ -18,6 +19,7 @@ void Ship::init(bool playerControlled, const std::string& name, Client* client,
 	this->name = name;
 	this->client = client;
 	this->clientUpdates = clientUpdates;
+	this->gameStartTime = gameStartTime;
 }
 
 void Ship::handleInput(float dt)
@@ -187,7 +189,7 @@ void Ship::fire(float posx, float posy, float velx, float vely, float time)
 	{
 		bullets.erase(bullets.begin());
 	}
-	float dt = GetTime() - time;
+	float dt = getElapsedTimeInSeconds(gameStartTime) - time;
 	float x = posx + velx * BULLET_SPEED * dt;
 	float y = posy + vely * BULLET_SPEED * dt;
 	Vector2 pos = {x, y};
@@ -197,7 +199,7 @@ void Ship::fire(float posx, float posy, float velx, float vely, float time)
 
 void Ship::startRotation(float angle, short direction, float time)
 {
-	float dt = GetTime() - time;
+	float dt = getElapsedTimeInSeconds(gameStartTime) - time;
 	rotation = angle + direction * rotationSpeed * dt;
 	rotating = direction;
 }

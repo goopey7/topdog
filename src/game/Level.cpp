@@ -1,16 +1,17 @@
 // Sam Collier 2023
 
 #include "Level.h"
+#include "Time.h"
 #include <cmath>
 #include <iostream>
 
 void Level::init()
 {
-	ship.init(true, client->getName(), client, nullptr);
+	ship.init(true, client->getName(), client, nullptr, *gameStartTime);
 	for (const Client& c : *otherClients)
 	{
 		Ship otherShip;
-		otherShip.init(false, c.getName(), nullptr, &clientUpdates);
+		otherShip.init(false, c.getName(), nullptr, &clientUpdates, *gameStartTime);
 		otherShips.push_back(otherShip);
 	}
 }
@@ -100,9 +101,6 @@ void Level::update(float dt)
 
 void Level::draw()
 {
-	DrawText(std::to_string(ship.getPosition().x).c_str(), 0, 0, 20, RED);
-	DrawText(std::to_string(ship.getPosition().y).c_str(), 0, 20, 20, RED);
-
 	for (Ship& otherShip : otherShips)
 	{
 		otherShip.draw();
@@ -113,8 +111,8 @@ void Level::draw()
 void Level::transitionToMainMenu() { scenes->pop(); }
 
 Level::Level(std::queue<std::unique_ptr<Scene>>* scenes, Client* client,
-			 const std::vector<Client>* clients)
-	: scenes(scenes), client(client), otherClients(clients)
+			 const std::vector<Client>* clients, long long* gameStartTime)
+	: scenes(scenes), client(client), otherClients(clients), gameStartTime(gameStartTime)
 {
 }
 
@@ -125,8 +123,8 @@ void Level::updateServer()
 	{
 		float radians = ship.getRotation() * DEG2RAD;
 		Vector2 direction = {sinf(radians), -cosf(radians)};
-		auto fire =
-			Fire(ship.getPosition().x, ship.getPosition().y, direction.x, direction.y, GetTime());
+		auto fire = Fire(ship.getPosition().x, ship.getPosition().y, direction.x, direction.y,
+						 getElapsedTimeInSeconds(*gameStartTime));
 		client->sendToServerTCP(fire);
 	}
 
@@ -139,7 +137,8 @@ void Level::updateServer()
 		 lastVelocitySent.y != ship.getVelocity().y) &&
 		timeSinceLastVelocityUpdate > velocityUpdateRate)
 	{
-		auto uv = UpdateVel(ship.getVelocity().x, ship.getVelocity().y, GetTime());
+		auto uv = UpdateVel(ship.getVelocity().x, ship.getVelocity().y,
+							getElapsedTimeInSeconds(*gameStartTime));
 		client->sendToServerUDP(uv);
 
 		lastVelocitySent = ship.getVelocity();
@@ -151,7 +150,8 @@ void Level::updateServer()
 		 lastPositionSent.y != ship.getPosition().y) &&
 		timeSinceLastPositionalUpdate > positionalUpdateRate)
 	{
-		auto up = UpdatePos(ship.getPosition().x, ship.getPosition().y, GetTime());
+		auto up = UpdatePos(ship.getPosition().x, ship.getPosition().y,
+							getElapsedTimeInSeconds(*gameStartTime));
 		client->sendToServerTCP(up);
 
 		lastPositionSent = ship.getPosition();
@@ -161,15 +161,16 @@ void Level::updateServer()
 	if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A) || IsKeyPressed(KEY_RIGHT) ||
 		IsKeyPressed(KEY_D))
 	{
-		auto ur = RotStart(ship.getRotation(),
-						   (IsKeyPressed(KEY_LEFT) || (IsKeyPressed(KEY_A))) ? -1 : 1, GetTime());
+		auto ur =
+			RotStart(ship.getRotation(), (IsKeyPressed(KEY_LEFT) || (IsKeyPressed(KEY_A))) ? -1 : 1,
+					 getElapsedTimeInSeconds(*gameStartTime));
 		client->sendToServerTCP(ur);
 	}
 
 	if (IsKeyReleased(KEY_LEFT) || IsKeyReleased(KEY_A) || IsKeyReleased(KEY_RIGHT) ||
 		IsKeyReleased(KEY_D))
 	{
-		auto ur = RotEnd(ship.getRotation(), GetTime());
+		auto ur = RotEnd(ship.getRotation(), getElapsedTimeInSeconds(*gameStartTime));
 		client->sendToServerTCP(ur);
 	}
 }

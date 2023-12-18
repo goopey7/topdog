@@ -14,7 +14,7 @@ class Level : public Scene
 	Level(const Level&) = delete;
 	Level& operator=(const Level&) = delete;
 	Level(std::queue<std::unique_ptr<Scene>>* scenes, Client* client,
-		  const std::vector<Client>* clients);
+		  const std::vector<Client>* clients, long long* gameStartTime);
 
 	void init() final;
 	void update(float dt) final;
@@ -43,6 +43,8 @@ class Level : public Scene
 
 	float rotationalUpdateRate = 0.7f;
 	float timeSinceLastRotationalUpdate = 0;
+
+	long long* gameStartTime;
 
 	std::map<Ship*, std::vector<ClientUpdateVel>> clientUpdates;
 };
