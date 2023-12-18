@@ -204,8 +204,8 @@ void Ship::fire(float posx, float posy, float velx, float vely, float time)
 		bullets.erase(bullets.begin());
 	}
 	float dt = GetTime() - time;
-	float x = posx + velx * dt;
-	float y = posy + vely * dt;
+	float x = posx + velx * BULLET_SPEED * dt;
+	float y = posy + vely * BULLET_SPEED * dt;
 	Vector2 pos = {x, y};
 	Vector2 vel = {velx, vely};
 	bullets.emplace_back(pos, vel);

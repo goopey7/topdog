@@ -3,7 +3,6 @@
 #include "Level.h"
 #include <cmath>
 #include <iostream>
-#include <thread>
 
 void Level::init()
 {
@@ -105,6 +104,7 @@ Level::Level(std::queue<std::unique_ptr<Scene>>* scenes, Client* client,
 
 void Level::updateServer()
 {
+	// send out bullet fires
 	if (IsKeyPressed(KEY_SPACE))
 	{
 		float radians = ship.getRotation() * DEG2RAD;
@@ -119,6 +119,7 @@ void Level::updateServer()
 		return;
 	}
 
+	// positional updates
 	if ((lastPositionSent.x != ship.getPosition().x ||
 		 lastPositionSent.y != ship.getPosition().y) ||
 		(lastVelocitySent.x != ship.getVelocity().x ||
