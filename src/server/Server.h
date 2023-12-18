@@ -22,16 +22,21 @@ class Server
 		void startServer(int port);
 		void acceptIncomingClients();
 		void handleClientLobbyMsgs();
-		void sendToClients(const ServerCommand& cmd, int indexToSkip = -1);
+		void sendToClientsTCP(const ServerCommand& cmd, int indexToSkip = -1);
+		void sendToClientsUDP(const ServerCommand& cmd, int indexToSkip = -1);
 		bool clientsAreReady() const;
 		bool shouldClose() const { return bShouldClose; }
 		void runGame();
 		bool gameStarted() const { return bGameStarted; }
 	private:
-		int serverSocket;
+		int serverTCPSocket;
+		int serverUDPSocket;
 		std::vector<Client> clients;
 		void processMsg(const ClientCommand msg, int index, const std::string& debug = "");
 		void receiveAndHandleMsgs();
+		void receiveTCP();
+		void receiveUDP();
+		void acceptTCP();
 		bool bShouldClose = false;
 		bool bGameStarted = false;
 };

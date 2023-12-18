@@ -1,10 +1,15 @@
 #pragma once
 
+#include <algorithm>
+#include <iostream>
 #include <sstream>
 #include <variant>
 #include <vector>
 
 #include <boost/mp11.hpp>
+
+#define SERVER_TCP_PORT 4916
+#define SERVER_UDP_PORT 4917
 
 struct StartGame
 {
@@ -140,6 +145,12 @@ inline ServerCommand parseServerCommand(const std::string& str)
 			tokens.push_back(str.substr(start, i - start));
 			start = i + 1;
 		}
+	}
+
+	// check if tokens[0] is a number
+	if (tokens.size() == 0 || !std::all_of(tokens[0].begin(), tokens[0].end(), ::isdigit))
+	{
+		throw std::runtime_error("Invalid Server Command: " + str);
 	}
 
 	auto cmd = srv_variant_from_index<ServerCommand>(std::stoi(tokens[0]));

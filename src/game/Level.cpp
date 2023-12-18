@@ -109,7 +109,7 @@ void Level::updateServer()
 		Vector2 direction = {sinf(radians), -cosf(radians)};
 		auto fire =
 			Fire(ship.getPosition().x, ship.getPosition().y, direction.x, direction.y, GetTime());
-		client->sendToServer(fire);
+		client->sendToServerTCP(fire);
 	}
 
 	timeSinceLastPositionalUpdate += GetFrameTime();
@@ -122,7 +122,7 @@ void Level::updateServer()
 		timeSinceLastVelocityUpdate > velocityUpdateRate)
 	{
 		auto uv = UpdateVel(ship.getVelocity().x, ship.getVelocity().y, GetTime());
-		client->sendToServer(uv);
+		client->sendToServerUDP(uv);
 
 		lastVelocitySent = ship.getVelocity();
 		timeSinceLastVelocityUpdate = 0;
@@ -134,7 +134,7 @@ void Level::updateServer()
 		timeSinceLastPositionalUpdate > positionalUpdateRate)
 	{
 		auto up = UpdatePos(ship.getPosition().x, ship.getPosition().y, GetTime());
-		client->sendToServer(up);
+		client->sendToServerTCP(up);
 
 		lastPositionSent = ship.getPosition();
 		timeSinceLastPositionalUpdate = 0;
@@ -145,101 +145,107 @@ void Level::updateServer()
 	{
 		auto ur = RotStart(ship.getRotation(),
 						   (IsKeyPressed(KEY_LEFT) || (IsKeyPressed(KEY_A))) ? -1 : 1, GetTime());
-		client->sendToServer(ur);
+		client->sendToServerTCP(ur);
 	}
 
 	if (IsKeyReleased(KEY_LEFT) || IsKeyReleased(KEY_A) || IsKeyReleased(KEY_RIGHT) ||
 		IsKeyReleased(KEY_D))
 	{
 		auto ur = RotEnd(ship.getRotation(), GetTime());
-		client->sendToServer(ur);
+		client->sendToServerTCP(ur);
 	}
 }
 
 void Level::updateClient()
 {
-	std::optional<ServerCommand> cmdOpt = client->listenToServer();
+	std::optional<std::queue<ServerCommand>> cmdQueueOpt = client->listenToServer();
 
-	if (!cmdOpt.has_value())
+	if (!cmdQueueOpt.has_value())
 	{
 		return;
 	}
 
-	auto cmd = cmdOpt.value();
+	auto cmdQueue = cmdQueueOpt.value();
 
-	if (std::holds_alternative<ClientUpdateVel>(cmd))
+	while (!cmdQueue.empty())
 	{
-		// find the ship with the same name as the one in the command
-		for (Ship& otherShip : otherShips)
+		ServerCommand cmd = cmdQueue.front();
+		cmdQueue.pop();
+
+		if (std::holds_alternative<ClientUpdateVel>(cmd))
 		{
-			if (otherShip.getName() == std::get<ClientUpdateVel>(cmd).name)
+			// find the ship with the same name as the one in the command
+			for (Ship& otherShip : otherShips)
 			{
-				otherShip.setVelocity(
-					{std::get<ClientUpdateVel>(cmd).velx, std::get<ClientUpdateVel>(cmd).vely});
-				if (clientUpdates[&otherShip].size() == 3)
+				if (otherShip.getName() == std::get<ClientUpdateVel>(cmd).name)
 				{
-					clientUpdates[&otherShip].erase(clientUpdates[&otherShip].begin());
+					otherShip.setVelocity(
+						{std::get<ClientUpdateVel>(cmd).velx, std::get<ClientUpdateVel>(cmd).vely});
+					if (clientUpdates[&otherShip].size() == 3)
+					{
+						clientUpdates[&otherShip].erase(clientUpdates[&otherShip].begin());
+					}
+					clientUpdates[&otherShip].push_back(std::get<ClientUpdateVel>(cmd));
+					break;
 				}
-				clientUpdates[&otherShip].push_back(std::get<ClientUpdateVel>(cmd));
-				break;
 			}
 		}
-	}
-	else if (std::holds_alternative<ClientUpdatePos>(cmd))
-	{
-		for (Ship& otherShip : otherShips)
+		else if (std::holds_alternative<ClientUpdatePos>(cmd))
 		{
-			if (otherShip.getName() == std::get<ClientUpdatePos>(cmd).name)
+			for (Ship& otherShip : otherShips)
 			{
-				auto up = std::get<ClientUpdatePos>(cmd);
-				otherShip.setPosition({up.posx, up.posy});
-				break;
+				if (otherShip.getName() == std::get<ClientUpdatePos>(cmd).name)
+				{
+					auto up = std::get<ClientUpdatePos>(cmd);
+					otherShip.setPosition({up.posx, up.posy});
+					break;
+				}
 			}
 		}
-	}
-	else if (std::holds_alternative<ClientRotStart>(cmd))
-	{
-		for (Ship& otherShip : otherShips)
+		else if (std::holds_alternative<ClientRotStart>(cmd))
 		{
-			if (otherShip.getName() == std::get<ClientRotStart>(cmd).name)
+			for (Ship& otherShip : otherShips)
 			{
-				auto ur = std::get<ClientRotStart>(cmd);
-				otherShip.startRotation(ur.angle, ur.dir, ur.time);
-				break;
+				if (otherShip.getName() == std::get<ClientRotStart>(cmd).name)
+				{
+					auto ur = std::get<ClientRotStart>(cmd);
+					otherShip.startRotation(ur.angle, ur.dir, ur.time);
+					break;
+				}
 			}
 		}
-	}
-	else if (std::holds_alternative<ClientRotEnd>(cmd))
-	{
-		for (Ship& otherShip : otherShips)
+		else if (std::holds_alternative<ClientRotEnd>(cmd))
 		{
-			if (otherShip.getName() == std::get<ClientRotEnd>(cmd).name)
+			for (Ship& otherShip : otherShips)
 			{
-				auto ur = std::get<ClientRotEnd>(cmd);
-				otherShip.endRotation(ur.angle);
-				break;
+				if (otherShip.getName() == std::get<ClientRotEnd>(cmd).name)
+				{
+					auto ur = std::get<ClientRotEnd>(cmd);
+					otherShip.endRotation(ur.angle);
+					break;
+				}
 			}
 		}
-	}
-	else if (std::holds_alternative<ClientFire>(cmd))
-	{
-		for (Ship& otherShip : otherShips)
+		else if (std::holds_alternative<ClientFire>(cmd))
 		{
-			if (otherShip.getName() == std::get<ClientFire>(cmd).name)
+			for (Ship& otherShip : otherShips)
 			{
-				ClientFire fire = std::get<ClientFire>(cmd);
-				otherShip.fire(fire.posx, fire.posy, fire.velx, fire.vely, fire.time);
+				if (otherShip.getName() == std::get<ClientFire>(cmd).name)
+				{
+					ClientFire fire = std::get<ClientFire>(cmd);
+					otherShip.fire(fire.posx, fire.posy, fire.velx, fire.vely, fire.time);
+				}
 			}
 		}
-	}
-	else if (std::holds_alternative<ClientDisconnected>(cmd))
-	{
-		for (int i = 0; i < otherShips.size(); i++)
+		else if (std::holds_alternative<ClientDisconnected>(cmd))
 		{
-			if (otherShips[i].getName() == std::get<ClientDisconnected>(cmd).name)
+			for (int i = 0; i < otherShips.size(); i++)
 			{
-				otherShips.erase(otherShips.begin() + i);
-				break;
+				if (otherShips[i].getName() == std::get<ClientDisconnected>(cmd).name)
+				{
+					otherShips.erase(otherShips.begin() + i);
+					break;
+				}
 			}
 		}
 	}

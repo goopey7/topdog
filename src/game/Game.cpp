@@ -35,7 +35,7 @@ void Game::nextScene()
 void Game::connect()
 {
 	client.init(nameInput);
-	otherClients = client.connectToServer("127.0.0.1", 4916);
+	otherClients = client.connectToServer("127.0.0.1");
 	for (auto& s : otherClients)
 	{
 		std::cout << "Added client " << s.getName() << std::endl;
@@ -132,46 +132,51 @@ void Game::listenToServer()
 {
 	if (client.isConnected())
 	{
-		std::optional<ServerCommand> cmdOpt = client.listenToServer();
-		if (!cmdOpt.has_value())
+		std::optional<std::queue<ServerCommand>> cmdQueueOpt = client.listenToServer(TCP);
+		if (!cmdQueueOpt.has_value())
 		{
 			return;
 		}
 
-		ServerCommand cmd = cmdOpt.value();
-		if (std::holds_alternative<NewClient>(cmd))
+		std::queue<ServerCommand> cmdQueue = cmdQueueOpt.value();
+		while (!cmdQueue.empty())
 		{
-			NewClient newClient = std::get<NewClient>(cmd);
-			Client c;
-			c.init(newClient.name);
-			otherClients.push_back(c);
-		}
-		else if (std::holds_alternative<ClientReady>(cmd))
-		{
-			ClientReady ready = std::get<ClientReady>(cmd);
-			for (auto& c : otherClients)
+			ServerCommand cmd = cmdQueue.front();
+			cmdQueue.pop();
+			if (std::holds_alternative<NewClient>(cmd))
 			{
-				if (c.getName() == ready.name)
+				NewClient newClient = std::get<NewClient>(cmd);
+				Client c;
+				c.init(newClient.name);
+				otherClients.push_back(c);
+			}
+			else if (std::holds_alternative<ClientReady>(cmd))
+			{
+				ClientReady ready = std::get<ClientReady>(cmd);
+				for (auto& c : otherClients)
 				{
-					c.setReady(ready.ready);
+					if (c.getName() == ready.name)
+					{
+						c.setReady(ready.ready);
+					}
 				}
 			}
-		}
-		else if (std::holds_alternative<ClientDisconnected>(cmd))
-		{
-			ClientDisconnected disconnected = std::get<ClientDisconnected>(cmd);
-			for (int i = 0; i < otherClients.size(); i++)
+			else if (std::holds_alternative<ClientDisconnected>(cmd))
 			{
-				if (otherClients[i].getName() == disconnected.name)
+				ClientDisconnected disconnected = std::get<ClientDisconnected>(cmd);
+				for (int i = 0; i < otherClients.size(); i++)
 				{
-					otherClients.erase(otherClients.begin() + i);
+					if (otherClients[i].getName() == disconnected.name)
+					{
+						otherClients.erase(otherClients.begin() + i);
+					}
 				}
 			}
-		}
-		else if (std::holds_alternative<StartGame>(cmd))
-		{
-			std::cout << "Starting game!" << std::endl;
-			inGame = true;
+			else if (std::holds_alternative<StartGame>(cmd))
+			{
+				std::cout << "Starting game!" << std::endl;
+				inGame = true;
+			}
 		}
 	}
 }

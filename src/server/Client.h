@@ -11,15 +11,23 @@
 class Client
 {
   public:
-	Client(int socket, const std::string& name);
-	void sendMsg(const std::string& msg) const;
-	int getSocket() const;
+	Client(const std::string& name);
+	void initTCP(int socket);
+	void initUDP(int socket, const std::string& ip, int port);
+	void sendTCPMsg(const std::string& msg) const;
+	void sendUDPMsg(const std::string& msg) const;
+	int getTCPSocket() const;
+	int getUDPSocket() const;
 	bool isReady() const;
 	void setReady(bool ready);
 	const std::string& getName() const;
+	sockaddr_in getUDPAddr() const;
 
   private:
-	int socket;
+	int tcpSocket;
+	int udpSocket;
+	sockaddr_in udpAddr;
+	socklen_t udpAddrLen;
 	bool bIsReady = false;
 	std::string name;
 };
