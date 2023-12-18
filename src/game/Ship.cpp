@@ -1,5 +1,6 @@
 // Sam Collier 2023
 #include "Ship.h"
+#include <algorithm>
 #include <cmath>
 #include <raylib.h>
 
@@ -95,36 +96,24 @@ void Ship::update(float dt)
 		{
 			if (clientUpdates->at(this).size() == 3)
 			{
+				// 2 most recent messages
 				const ClientUpdateStatus msg0 = clientUpdates->at(this)[2];
 				const ClientUpdateStatus msg1 = clientUpdates->at(this)[1];
-				const ClientUpdateStatus msg2 = clientUpdates->at(this)[0];
 
-				// figure out if the signs of the velocities are the same
-				bool sameSigns = ((msg0.velx > 0 && msg1.velx > 0 && msg2.velx > 0) ||
-								  (msg0.velx < 0 && msg1.velx < 0 && msg2.velx < 0)) &&
-								 ((msg0.vely > 0 && msg1.vely > 0 && msg2.vely > 0) ||
-								  (msg0.vely < 0 && msg1.vely < 0 && msg2.vely < 0));
+				// clamp change in velocity so that the ship doesn't seem to teleport when velocity
+				// changes (still kinda happens at 500ms+)
+				float dvx = msg0.velx - msg1.velx;
+				dvx = std::clamp(dvx, -10.f, 10.f);
 
-				if (sameSigns)
-				{
-					float v0X = (msg1.posx - msg2.posx) / (msg1.time - msg2.time);
-					float v1X = (msg0.posx - msg1.posx) / (msg0.time - msg1.time);
-					float aX = (v0X - v1X) / (msg0.time - msg2.time);
+				float dvy = msg0.vely - msg1.vely;
+				dvy = std::clamp(dvy, -10.f, 10.f);
 
-					float v0Y = (msg1.posy - msg2.posy) / (msg1.time - msg2.time);
-					float v1Y = (msg0.posy - msg1.posy) / (msg0.time - msg1.time);
-					float aY = (v0Y - v1Y) / (msg0.time - msg2.time);
+				float vx = msg0.velx + dvx;
+				float vy = msg0.vely + dvy;
 
-					float dt = GetTime() - msg0.time;
-
-					position.x = msg0.posx + v0X * dt + 0.5f * aX * dt * dt;
-					position.y = msg0.posy + v0Y * dt + 0.5f * aY * dt * dt;
-				}
-				else
-				{
-					position.x += velocity.x * dt;
-					position.y += velocity.y * dt;
-				}
+				float dt = GetTime() - msg0.time;
+				position.x = msg0.posx + vx * dt;
+				position.y = msg0.posy + vy * dt;
 			}
 		}
 	}
@@ -210,4 +199,3 @@ void Ship::fire(float posx, float posy, float velx, float vely, float time)
 	Vector2 vel = {velx, vely};
 	bullets.emplace_back(pos, vel);
 }
-
