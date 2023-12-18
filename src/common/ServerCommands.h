@@ -26,15 +26,27 @@ struct ClientReady
 	bool ready;
 };
 
-struct ClientUpdateStatus
+struct ClientUpdateVel
+{
+	std::string name;
+	float velx;
+	float vely;
+	float time;
+};
+
+struct ClientUpdatePos
 {
 	std::string name;
 	float posx;
 	float posy;
-	float velx;
-	float vely;
+	float time;
+};
+
+struct ClientUpdateRot
+{
+	std::string name;
 	float angle;
-	short rotating; // -1 = left, 0 = none, 1 = right
+	int rotating; // -1 for left, 0 for none, 1 for right
 	float time;
 };
 
@@ -49,7 +61,8 @@ struct ClientFire
 };
 
 #define SERVER_COMMANDS                                                                            \
-	StartGame, NewClient, ClientDisconnected, ClientReady, ClientUpdateStatus, ClientFire
+	StartGame, NewClient, ClientDisconnected, ClientReady, ClientFire, ClientUpdateVel,            \
+		ClientUpdatePos, ClientUpdateRot
 
 using ServerCommand = std::variant<SERVER_COMMANDS>;
 
@@ -71,10 +84,19 @@ using ServerCommand = std::variant<SERVER_COMMANDS>;
 				{                                                                                  \
 					ss << ":" << arg.name << ":" << arg.ready;                                     \
 				}                                                                                  \
-				else if constexpr (std::is_same_v<T, ClientUpdateStatus>)                          \
+				else if constexpr (std::is_same_v<T, ClientUpdateVel>)                             \
 				{                                                                                  \
-					ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx \
-					   << ":" << arg.vely << ":" << arg.angle << ":" << arg.rotating << ":"        \
+					ss << ":" << arg.name << ":" << arg.velx << ":" << arg.vely << ":"             \
+					   << arg.time;                                                                \
+				}                                                                                  \
+				else if constexpr (std::is_same_v<T, ClientUpdatePos>)                             \
+				{                                                                                  \
+					ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":"             \
+					   << arg.time;                                                                \
+				}                                                                                  \
+				else if constexpr (std::is_same_v<T, ClientUpdateRot>)                             \
+				{                                                                                  \
+					ss << ":" << arg.name << ":" << arg.angle << ":" << arg.rotating << ":"        \
 					   << arg.time;                                                                \
 				}                                                                                  \
 				else if constexpr (std::is_same_v<T, ClientFire>)                                  \
@@ -111,18 +133,28 @@ inline ServerCommand parseServerCommand(const std::string& str)
 
 	auto cmd = srv_variant_from_index<ServerCommand>(std::stoi(tokens[0]));
 
-	if (tokens.size() == 9)
+	if (tokens.size() == 5)
 	{
-		if (std::holds_alternative<ClientUpdateStatus>(cmd))
+		if (std::holds_alternative<ClientUpdateVel>(cmd))
 		{
-			std::get<ClientUpdateStatus>(cmd).name = tokens[1];
-			std::get<ClientUpdateStatus>(cmd).posx = std::stof(tokens[2]);
-			std::get<ClientUpdateStatus>(cmd).posy = std::stof(tokens[3]);
-			std::get<ClientUpdateStatus>(cmd).velx = std::stof(tokens[4]);
-			std::get<ClientUpdateStatus>(cmd).vely = std::stof(tokens[5]);
-			std::get<ClientUpdateStatus>(cmd).angle = std::stof(tokens[6]);
-			std::get<ClientUpdateStatus>(cmd).rotating = std::stoi(tokens[7]);
-			std::get<ClientUpdateStatus>(cmd).time = std::stof(tokens[8]);
+			std::get<ClientUpdateVel>(cmd).name = tokens[1];
+			std::get<ClientUpdateVel>(cmd).velx = std::stof(tokens[2]);
+			std::get<ClientUpdateVel>(cmd).vely = std::stof(tokens[3]);
+			std::get<ClientUpdateVel>(cmd).time = std::stof(tokens[4]);
+		}
+		else if (std::holds_alternative<ClientUpdatePos>(cmd))
+		{
+			std::get<ClientUpdatePos>(cmd).name = tokens[1];
+			std::get<ClientUpdatePos>(cmd).posx = std::stof(tokens[2]);
+			std::get<ClientUpdatePos>(cmd).posy = std::stof(tokens[3]);
+			std::get<ClientUpdatePos>(cmd).time = std::stof(tokens[4]);
+		}
+		else if (std::holds_alternative<ClientUpdateRot>(cmd))
+		{
+			std::get<ClientUpdateRot>(cmd).name = tokens[1];
+			std::get<ClientUpdateRot>(cmd).angle = std::stof(tokens[2]);
+			std::get<ClientUpdateRot>(cmd).rotating = std::stoi(tokens[3]);
+			std::get<ClientUpdateRot>(cmd).time = std::stof(tokens[4]);
 		}
 	}
 	else if (tokens.size() == 7)

@@ -17,14 +17,24 @@ struct Ready
 	bool ready;
 };
 
-struct UpdateStatus
+struct UpdatePos
 {
 	float posx;
 	float posy;
+	float time;
+};
+
+struct UpdateVel
+{
 	float velx;
 	float vely;
+	float time;
+};
+
+struct UpdateRot
+{
 	float angle;
-	short rotating; // -1 = left, 0 = none, 1 = right
+	int rotating; // -1 for left, 0 for none, 1 for right
 	float time;
 };
 
@@ -37,7 +47,7 @@ struct Fire
 	float time;
 };
 
-#define CLIENT_COMMANDS Disconnect, Ready, UpdateStatus, Fire
+#define CLIENT_COMMANDS Disconnect, Ready, Fire, UpdatePos, UpdateVel, UpdateRot
 
 using ClientCommand = std::variant<CLIENT_COMMANDS>;
 
@@ -48,12 +58,20 @@ using ClientCommand = std::variant<CLIENT_COMMANDS>;
 		std::visit(                                                                                \
 			[&](auto&& arg)                                                                        \
 			{                                                                                      \
+				ss << "+";                                                                         \
 				ss << cmd.index();                                                                 \
 				using T = std::decay_t<decltype(arg)>;                                             \
-				if constexpr (std::is_same_v<T, UpdateStatus>)                                     \
+				if constexpr (std::is_same_v<T, UpdateVel>)                                        \
 				{                                                                                  \
-					ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx << ":" << arg.vely \
-					   << ":" << arg.angle << ":" << arg.rotating << ":" << arg.time;              \
+					ss << ":" << arg.velx << ":" << arg.vely << ":" << arg.time;                   \
+				}                                                                                  \
+				else if constexpr (std::is_same_v<T, UpdatePos>)                                   \
+				{                                                                                  \
+					ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.time;                   \
+				}                                                                                  \
+				else if constexpr (std::is_same_v<T, UpdateRot>)                                   \
+				{                                                                                  \
+					ss << ":" << arg.angle << ":" << arg.rotating << ":" << arg.time;              \
 				}                                                                                  \
 				else if constexpr (std::is_same_v<T, Ready>)                                       \
 				{                                                                                  \
@@ -77,58 +95,89 @@ template <typename V> auto variant_from_index(size_t index) -> V
 	return mp_with_index<mp_size<V>>(index, [](auto I) { return V(std::in_place_index<I>); });
 }
 
-inline ClientCommand parseClientCommand(const std::string& str)
+inline std::vector<ClientCommand> parseClientCommands(const std::string& str)
 {
-	// split string by ':'
-	std::vector<std::string> tokens;
+
+	// split string by '+'
+	std::vector<std::string> commands;
 	int start = 0;
 	for (int i = 0; i < str.size(); i++)
 	{
-		if (str[i] == ':')
+		if (str[i] == '+')
 		{
-			tokens.push_back(str.substr(start, i - start));
+			commands.push_back(str.substr(start, i - start));
 			start = i + 1;
 		}
 	}
 
-	auto cmd = variant_from_index<ClientCommand>(std::stoi(tokens[0]));
+	// split string by ':'
+	std::vector<ClientCommand> clientCommands;
+	for (int i = 0; i < commands.size(); i++)
+	{
+		std::vector<std::string> tokens;
+		start = 0;
+		for (int i = 0; i < str.size(); i++)
+		{
+			if (str[i] == ':')
+			{
+				tokens.push_back(str.substr(start, i - start));
+				start = i + 1;
+			}
+		}
 
-	// initialize structs with arguments if necessary
-	if (tokens.size() == 8)
-	{
-		if (std::holds_alternative<UpdateStatus>(cmd))
+		auto cmd = variant_from_index<ClientCommand>(std::stoi(tokens[0]));
+
+		// initialize structs with arguments if necessary
+		if (tokens.size() == 4)
 		{
-			auto us = std::get<UpdateStatus>(cmd);
-			us.posx = std::stof(tokens[1]);
-			us.posy = std::stof(tokens[2]);
-			us.velx = std::stof(tokens[3]);
-			us.vely = std::stof(tokens[4]);
-			us.angle = std::stof(tokens[5]);
-			us.rotating = std::stoi(tokens[6]);
-			us.time = std::stof(tokens[7]);
-			cmd = us;
+			if (std::holds_alternative<UpdateVel>(cmd))
+			{
+				auto uv = std::get<UpdateVel>(cmd);
+				uv.velx = std::stof(tokens[1]);
+				uv.vely = std::stof(tokens[2]);
+				uv.time = std::stof(tokens[3]);
+				cmd = uv;
+			}
+			else if (std::holds_alternative<UpdatePos>(cmd))
+			{
+				auto up = std::get<UpdatePos>(cmd);
+				up.posx = std::stof(tokens[1]);
+				up.posy = std::stof(tokens[2]);
+				up.time = std::stof(tokens[3]);
+				cmd = up;
+			}
+			else if (std::holds_alternative<UpdateRot>(cmd))
+			{
+				auto ur = std::get<UpdateRot>(cmd);
+				ur.angle = std::stof(tokens[1]);
+				ur.rotating = std::stoi(tokens[2]);
+				ur.time = std::stof(tokens[3]);
+				cmd = ur;
+			}
 		}
-	}
-	else if (tokens.size() == 6)
-	{
-		if (std::holds_alternative<Fire>(cmd))
+		else if (tokens.size() == 6)
 		{
-			auto fire = std::get<Fire>(cmd);
-			fire.posx = std::stof(tokens[1]);
-			fire.posy = std::stof(tokens[2]);
-			fire.velx = std::stof(tokens[3]);
-			fire.vely = std::stof(tokens[4]);
-			fire.time = std::stof(tokens[5]);
-			cmd = fire;
+			if (std::holds_alternative<Fire>(cmd))
+			{
+				auto fire = std::get<Fire>(cmd);
+				fire.posx = std::stof(tokens[1]);
+				fire.posy = std::stof(tokens[2]);
+				fire.velx = std::stof(tokens[3]);
+				fire.vely = std::stof(tokens[4]);
+				fire.time = std::stof(tokens[5]);
+				cmd = fire;
+			}
 		}
-	}
-	else if (tokens.size() == 2)
-	{
-		if (std::holds_alternative<Ready>(cmd))
+		else if (tokens.size() == 2)
 		{
-			std::get<Ready>(cmd).ready = std::stoi(tokens[1]);
+			if (std::holds_alternative<Ready>(cmd))
+			{
+				std::get<Ready>(cmd).ready = std::stoi(tokens[1]);
+			}
 		}
+
+		clientCommands.push_back(cmd);
 	}
 
-	return cmd;
+	return clientCommands;
 }

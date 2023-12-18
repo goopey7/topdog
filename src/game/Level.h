@@ -35,11 +35,14 @@ class Level : public Scene
 	Vector2 lastVelocitySent = {-1.f, -12.f};
 	float lastRotationSent = -1.f;
 
-	float clientUpdateRate = 0.5f;
-	float clientSendRate = 0.5f;
+	float positionalUpdateRate = 0.7f;
+	float timeSinceLastPositionalUpdate = 0;
 
-	float timeSinceLastUpdate = 0;
-	float timeSinceLastSend = 0;
+	float velocityUpdateRate = 0.f;
+	float timeSinceLastVelocityUpdate = 0;
 
-	std::map<Ship*, std::vector<ClientUpdateStatus>> clientUpdates;
+	float rotationalUpdateRate = 0.7f;
+	float timeSinceLastRotationalUpdate = 0;
+
+	std::map<Ship*, std::vector<ClientUpdateVel>> clientUpdates;
 };

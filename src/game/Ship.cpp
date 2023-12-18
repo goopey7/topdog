@@ -7,7 +7,7 @@
 #include "ClientCommands.h"
 
 void Ship::init(bool playerControlled, const std::string& name, Client* client,
-				std::map<Ship*, std::vector<ClientUpdateStatus>>* clientUpdates)
+				std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates)
 {
 	textures.push_back(LoadTexture("res/sprites/shipIdle.png"));
 	textures.push_back(LoadTexture("res/sprites/shipActive.png"));
@@ -86,19 +86,16 @@ void Ship::update(float dt)
 	{
 		handleInput(dt);
 
-		position.x += velocity.x * dt;
-		position.y += velocity.y * dt;
 	}
 	else
 	{
-		float radians = rotation * (float)M_PI / 180.f;
 		if (clientUpdates->contains(this))
 		{
 			if (clientUpdates->at(this).size() == 3)
 			{
 				// 2 most recent messages
-				const ClientUpdateStatus msg0 = clientUpdates->at(this)[2];
-				const ClientUpdateStatus msg1 = clientUpdates->at(this)[1];
+				const ClientUpdateVel msg0 = clientUpdates->at(this)[2];
+				const ClientUpdateVel msg1 = clientUpdates->at(this)[1];
 
 				// clamp change in velocity so that the ship doesn't seem to teleport when velocity
 				// changes (still kinda happens at 500ms+)
@@ -108,15 +105,14 @@ void Ship::update(float dt)
 				float dvy = msg0.vely - msg1.vely;
 				dvy = std::clamp(dvy, -10.f, 10.f);
 
-				float vx = msg0.velx + dvx;
-				float vy = msg0.vely + dvy;
-
-				float dt = GetTime() - msg0.time;
-				position.x = msg0.posx + vx * dt;
-				position.y = msg0.posy + vy * dt;
+				velocity.x = msg0.velx + dvx;
+				velocity.y = msg0.vely + dvy;
 			}
 		}
 	}
+
+	position.x += velocity.x * dt;
+	position.y += velocity.y * dt;
 
 	rotation += rotating * rotationSpeed * dt;
 

@@ -105,7 +105,10 @@ const std::vector<Client> Client::connectToServer(const std::string& ip, int por
 void Client::sendToServer(const ClientCommand& command)
 {
 	std::string message = STRINGIFY_CLIENT_COMMAND(command);
-	std::cout << "Client: " << message << std::endl;
+	if (std::holds_alternative<UpdatePos>(command))
+	{
+		std::cout << "Client " << name << ": " << message << std::endl;
+	}
 	send(clientSocket, message.c_str(), message.size() + 1, 0);
 }
 
@@ -164,23 +167,10 @@ std::optional<ServerCommand> Client::listenToServer()
 	return parseServerCommand(msg);
 }
 
-void Client::init(const std::string& name)
-{
-	this->name = name;
-}
+void Client::init(const std::string& name) { this->name = name; }
 
-const std::string& Client::getName() const
-{
-	return name;
-}
+const std::string& Client::getName() const { return name; }
 
-bool Client::isReadyToStart() const
-{
-	return isReady;
-}
+bool Client::isReadyToStart() const { return isReady; }
 
-void Client::setReady(bool ready)
-{
-	this->isReady = ready;
-}
-
+void Client::setReady(bool ready) { this->isReady = ready; }

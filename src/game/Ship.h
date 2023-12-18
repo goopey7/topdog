@@ -12,7 +12,7 @@
 class Ship
 {
 	public:
-		void init(bool playerControlled, const std::string& name, Client* client, std::map<Ship*, std::vector<ClientUpdateStatus>>* clientUpdates);
+		void init(bool playerControlled, const std::string& name, Client* client, std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates);
 		void update(float dt);
 		void draw();
 		void onCollision(const Bullet& other);
@@ -58,5 +58,5 @@ class Ship
 		float lastRotation = 0;
 
 		Client* client;
-		std::map<Ship*, std::vector<ClientUpdateStatus>>* clientUpdates;
+		std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates;
 };

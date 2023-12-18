@@ -1,2 +1,2 @@
 #!/bin/bash
-./build/topdog & ./build/topdog & ./build/server
+./build/topdog & ./build/topdog & ./build/topdog & ./build/server

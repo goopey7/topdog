@@ -36,10 +36,6 @@ void Server::sendToClients(const ServerCommand& cmd, int indexToSkip)
 		{
 			continue;
 		}
-		if (std::holds_alternative<StartGame>(cmd))
-		{
-			std::cout << "Sending start game to client " << i << std::endl;
-		}
 		clients[i].sendMsg(STRINGIFY_SERVER_COMMAND(cmd));
 	}
 }
@@ -185,7 +181,7 @@ bool Server::clientsAreReady() const
 	return true;
 }
 
-void Server::processMsg(const ClientCommand msg, int index)
+void Server::processMsg(const ClientCommand msg, int index, const std::string& debug)
 {
 	std::string name = clients[index].getName();
 	if (std::holds_alternative<Disconnect>(msg))
@@ -203,12 +199,21 @@ void Server::processMsg(const ClientCommand msg, int index)
 			sendToClients(ClientReady(name, readyCmd.ready), index);
 		}
 	}
-	else if (std::holds_alternative<UpdateStatus>(msg))
+	else if (std::holds_alternative<UpdateVel>(msg))
 	{
-		UpdateStatus us = std::get<UpdateStatus>(msg);
-		sendToClients(ClientUpdateStatus(name, us.posx, us.posy, us.velx, us.vely, us.angle,
-										 us.rotating, us.time),
-					  index);
+		UpdateVel uv = std::get<UpdateVel>(msg);
+		sendToClients(ClientUpdateVel(name, uv.velx, uv.vely, uv.time), index);
+	}
+	else if (std::holds_alternative<UpdatePos>(msg))
+	{
+		UpdatePos up = std::get<UpdatePos>(msg);
+		sendToClients(ClientUpdatePos(name, up.posx, up.posy, up.time), index);
+	}
+	else if (std::holds_alternative<UpdateRot>(msg))
+	{
+		std::cout << "(server): " << debug << std::endl;
+		UpdateRot ur = std::get<UpdateRot>(msg);
+		sendToClients(ClientUpdateRot(name, ur.angle, ur.rotating, ur.time), index);
 	}
 	else if (std::holds_alternative<Fire>(msg))
 	{
@@ -264,9 +269,11 @@ void Server::receiveAndHandleMsgs()
 				std::cerr << "Can't receive message from client" << std::endl;
 				continue;
 			}
-			std::cout << "Client " << i << ": " << clientMsg << std::endl;
-			auto cmd = parseClientCommand(clientMsg);
-			processMsg(cmd, i);
+			auto cmds = parseClientCommands(clientMsg);
+			for (const auto& cmd : cmds)
+			{
+				processMsg(cmd, i, clientMsg);
+			}
 		}
 	}
 }

@@ -30,7 +30,7 @@ class Server
 	private:
 		int serverSocket;
 		std::vector<Client> clients;
-		void processMsg(const ClientCommand msg, int index);
+		void processMsg(const ClientCommand msg, int index, const std::string& debug = "");
 		void receiveAndHandleMsgs();
 		bool bShouldClose = false;
 		bool bGameStarted = false;
