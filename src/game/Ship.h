@@ -34,6 +34,9 @@ class Ship
 
 		void setRotationDirection(short direction) { rotating = direction; }
 		short getRotationDirection() const { return rotating; }
+
+		void startRotation(float angle, short direction, float time);
+		void endRotation(float angle);
 	private:
 		Vector2 position = { 320, 100 };
 		Vector2 velocity = { 0, 0 };

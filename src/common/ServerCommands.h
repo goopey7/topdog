@@ -42,11 +42,18 @@ struct ClientUpdatePos
 	float time;
 };
 
-struct ClientUpdateRot
+struct ClientRotStart
 {
 	std::string name;
 	float angle;
-	int rotating; // -1 for left, 0 for none, 1 for right
+	int dir;
+	float time;
+};
+
+struct ClientRotEnd
+{
+	std::string name;
+	float angle;
 	float time;
 };
 
@@ -62,7 +69,7 @@ struct ClientFire
 
 #define SERVER_COMMANDS                                                                            \
 	StartGame, NewClient, ClientDisconnected, ClientReady, ClientFire, ClientUpdateVel,            \
-		ClientUpdatePos, ClientUpdateRot
+		ClientUpdatePos, ClientRotStart, ClientRotEnd
 
 using ServerCommand = std::variant<SERVER_COMMANDS>;
 
@@ -94,10 +101,14 @@ using ServerCommand = std::variant<SERVER_COMMANDS>;
 					ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":"             \
 					   << arg.time;                                                                \
 				}                                                                                  \
-				else if constexpr (std::is_same_v<T, ClientUpdateRot>)                             \
+				else if constexpr (std::is_same_v<T, ClientRotStart>)                              \
 				{                                                                                  \
-					ss << ":" << arg.name << ":" << arg.angle << ":" << arg.rotating << ":"        \
+					ss << ":" << arg.name << ":" << arg.angle << ":" << arg.dir << ":"             \
 					   << arg.time;                                                                \
+				}                                                                                  \
+				else if constexpr (std::is_same_v<T, ClientRotEnd>)                                \
+				{                                                                                  \
+					ss << ":" << arg.name << ":" << arg.angle << ":" << arg.time;                  \
 				}                                                                                  \
 				else if constexpr (std::is_same_v<T, ClientFire>)                                  \
 				{                                                                                  \
@@ -149,12 +160,21 @@ inline ServerCommand parseServerCommand(const std::string& str)
 			std::get<ClientUpdatePos>(cmd).posy = std::stof(tokens[3]);
 			std::get<ClientUpdatePos>(cmd).time = std::stof(tokens[4]);
 		}
-		else if (std::holds_alternative<ClientUpdateRot>(cmd))
+		else if (std::holds_alternative<ClientRotStart>(cmd))
 		{
-			std::get<ClientUpdateRot>(cmd).name = tokens[1];
-			std::get<ClientUpdateRot>(cmd).angle = std::stof(tokens[2]);
-			std::get<ClientUpdateRot>(cmd).rotating = std::stoi(tokens[3]);
-			std::get<ClientUpdateRot>(cmd).time = std::stof(tokens[4]);
+			std::get<ClientRotStart>(cmd).name = tokens[1];
+			std::get<ClientRotStart>(cmd).angle = std::stof(tokens[2]);
+			std::get<ClientRotStart>(cmd).dir = std::stoi(tokens[3]);
+			std::get<ClientRotStart>(cmd).time = std::stof(tokens[4]);
+		}
+	}
+	else if (tokens.size() == 4)
+	{
+		if (std::holds_alternative<ClientRotEnd>(cmd))
+		{
+			std::get<ClientRotEnd>(cmd).name = tokens[1];
+			std::get<ClientRotEnd>(cmd).angle = std::stof(tokens[2]);
+			std::get<ClientRotEnd>(cmd).time = std::stof(tokens[3]);
 		}
 	}
 	else if (tokens.size() == 7)

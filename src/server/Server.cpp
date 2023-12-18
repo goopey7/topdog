@@ -209,11 +209,17 @@ void Server::processMsg(const ClientCommand msg, int index, const std::string& d
 		UpdatePos up = std::get<UpdatePos>(msg);
 		sendToClients(ClientUpdatePos(name, up.posx, up.posy, up.time), index);
 	}
-	else if (std::holds_alternative<UpdateRot>(msg))
+	else if (std::holds_alternative<RotStart>(msg))
 	{
-		std::cout << "(server): " << debug << std::endl;
-		UpdateRot ur = std::get<UpdateRot>(msg);
-		sendToClients(ClientUpdateRot(name, ur.angle, ur.rotating, ur.time), index);
+		std::cout << "RotStart: " << debug << std::endl;
+		RotStart ur = std::get<RotStart>(msg);
+		sendToClients(ClientRotStart(name, ur.angle, ur.dir, ur.time), index);
+	}
+	else if (std::holds_alternative<RotEnd>(msg))
+	{
+		std::cout << "RotEnd: " << debug << std::endl;
+		RotEnd ur = std::get<RotEnd>(msg);
+		sendToClients(ClientRotEnd(name, ur.angle, ur.time), index);
 	}
 	else if (std::holds_alternative<Fire>(msg))
 	{

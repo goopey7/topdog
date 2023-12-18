@@ -195,3 +195,17 @@ void Ship::fire(float posx, float posy, float velx, float vely, float time)
 	Vector2 vel = {velx, vely};
 	bullets.emplace_back(pos, vel);
 }
+
+void Ship::startRotation(float angle, short direction, float time)
+{
+	float dt = GetTime() - time;
+	rotation = angle + direction * rotationSpeed * dt;
+	rotating = direction;
+}
+
+void Ship::endRotation(float angle)
+{
+	rotation = angle;
+	rotating = 0;
+}
+

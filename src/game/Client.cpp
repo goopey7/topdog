@@ -105,10 +105,6 @@ const std::vector<Client> Client::connectToServer(const std::string& ip, int por
 void Client::sendToServer(const ClientCommand& command)
 {
 	std::string message = STRINGIFY_CLIENT_COMMAND(command);
-	if (std::holds_alternative<UpdatePos>(command))
-	{
-		std::cout << "Client " << name << ": " << message << std::endl;
-	}
 	send(clientSocket, message.c_str(), message.size() + 1, 0);
 }
 

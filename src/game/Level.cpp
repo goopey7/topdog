@@ -118,8 +118,8 @@ void Level::updateServer()
 
 	// velocity updates
 	if ((lastVelocitySent.x != ship.getVelocity().x ||
-		lastVelocitySent.y != ship.getVelocity().y) &&
-			timeSinceLastVelocityUpdate > velocityUpdateRate)
+		 lastVelocitySent.y != ship.getVelocity().y) &&
+		timeSinceLastVelocityUpdate > velocityUpdateRate)
 	{
 		auto uv = UpdateVel(ship.getVelocity().x, ship.getVelocity().y, GetTime());
 		client->sendToServer(uv);
@@ -130,8 +130,8 @@ void Level::updateServer()
 
 	// positional updates
 	if ((lastPositionSent.x != ship.getPosition().x ||
-		lastPositionSent.y != ship.getPosition().y) &&
-			timeSinceLastPositionalUpdate > positionalUpdateRate)
+		 lastPositionSent.y != ship.getPosition().y) &&
+		timeSinceLastPositionalUpdate > positionalUpdateRate)
 	{
 		auto up = UpdatePos(ship.getPosition().x, ship.getPosition().y, GetTime());
 		client->sendToServer(up);
@@ -140,14 +140,19 @@ void Level::updateServer()
 		timeSinceLastPositionalUpdate = 0;
 	}
 
-	if (lastRotationSent != ship.getRotation() &&
-		timeSinceLastRotationalUpdate > rotationalUpdateRate)
+	if (IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_A) || IsKeyPressed(KEY_RIGHT) ||
+		IsKeyPressed(KEY_D))
 	{
-		auto ur = UpdateRot(ship.getRotation(), ship.getRotationDirection(), GetTime());
+		auto ur = RotStart(ship.getRotation(),
+						   (IsKeyPressed(KEY_LEFT) || (IsKeyPressed(KEY_A))) ? -1 : 1, GetTime());
 		client->sendToServer(ur);
+	}
 
-		lastRotationSent = ship.getRotation();
-		timeSinceLastRotationalUpdate = 0;
+	if (IsKeyReleased(KEY_LEFT) || IsKeyReleased(KEY_A) || IsKeyReleased(KEY_RIGHT) ||
+		IsKeyReleased(KEY_D))
+	{
+		auto ur = RotEnd(ship.getRotation(), GetTime());
+		client->sendToServer(ur);
 	}
 }
 
@@ -192,14 +197,26 @@ void Level::updateClient()
 			}
 		}
 	}
-	else if (std::holds_alternative<ClientUpdateRot>(cmd))
+	else if (std::holds_alternative<ClientRotStart>(cmd))
 	{
 		for (Ship& otherShip : otherShips)
 		{
-			if (otherShip.getName() == std::get<ClientUpdateRot>(cmd).name)
+			if (otherShip.getName() == std::get<ClientRotStart>(cmd).name)
 			{
-				auto ur = std::get<ClientUpdateRot>(cmd);
-				otherShip.setRotation(ur.angle);
+				auto ur = std::get<ClientRotStart>(cmd);
+				otherShip.startRotation(ur.angle, ur.dir, ur.time);
+				break;
+			}
+		}
+	}
+	else if (std::holds_alternative<ClientRotEnd>(cmd))
+	{
+		for (Ship& otherShip : otherShips)
+		{
+			if (otherShip.getName() == std::get<ClientRotEnd>(cmd).name)
+			{
+				auto ur = std::get<ClientRotEnd>(cmd);
+				otherShip.endRotation(ur.angle);
 				break;
 			}
 		}

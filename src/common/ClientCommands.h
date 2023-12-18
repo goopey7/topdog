@@ -31,10 +31,16 @@ struct UpdateVel
 	float time;
 };
 
-struct UpdateRot
+struct RotStart
 {
 	float angle;
-	int rotating; // -1 for left, 0 for none, 1 for right
+	int dir; // -1 for left, 0 for none, 1 for right
+	float time;
+};
+
+struct RotEnd
+{
+	float angle;
 	float time;
 };
 
@@ -47,7 +53,7 @@ struct Fire
 	float time;
 };
 
-#define CLIENT_COMMANDS Disconnect, Ready, Fire, UpdatePos, UpdateVel, UpdateRot
+#define CLIENT_COMMANDS Disconnect, Ready, Fire, UpdatePos, UpdateVel, RotStart, RotEnd
 
 using ClientCommand = std::variant<CLIENT_COMMANDS>;
 
@@ -69,9 +75,13 @@ using ClientCommand = std::variant<CLIENT_COMMANDS>;
 				{                                                                                  \
 					ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.time;                   \
 				}                                                                                  \
-				else if constexpr (std::is_same_v<T, UpdateRot>)                                   \
+				else if constexpr (std::is_same_v<T, RotStart>)                                    \
 				{                                                                                  \
-					ss << ":" << arg.angle << ":" << arg.rotating << ":" << arg.time;              \
+					ss << ":" << arg.angle << ":" << arg.dir << ":" << arg.time;                   \
+				}                                                                                  \
+				else if constexpr (std::is_same_v<T, RotEnd>)                                      \
+				{                                                                                  \
+					ss << ":" << arg.angle << ":" << arg.time;                                     \
 				}                                                                                  \
 				else if constexpr (std::is_same_v<T, Ready>)                                       \
 				{                                                                                  \
@@ -146,12 +156,22 @@ inline std::vector<ClientCommand> parseClientCommands(const std::string& str)
 				up.time = std::stof(tokens[3]);
 				cmd = up;
 			}
-			else if (std::holds_alternative<UpdateRot>(cmd))
+			else if (std::holds_alternative<RotStart>(cmd))
 			{
-				auto ur = std::get<UpdateRot>(cmd);
+				auto ur = std::get<RotStart>(cmd);
 				ur.angle = std::stof(tokens[1]);
-				ur.rotating = std::stoi(tokens[2]);
+				ur.dir = std::stoi(tokens[2]);
 				ur.time = std::stof(tokens[3]);
+				cmd = ur;
+			}
+		}
+		else if (tokens.size() == 3)
+		{
+			if (std::holds_alternative<RotEnd>(cmd))
+			{
+				auto ur = std::get<RotEnd>(cmd);
+				ur.angle = std::stof(tokens[1]);
+				ur.time = std::stof(tokens[2]);
 				cmd = ur;
 			}
 		}
