@@ -43,6 +43,21 @@ void Level::update(float dt)
 				otherShips[i].getBullets().erase(otherShips[i].getBullets().begin() + j);
 				break;
 			}
+
+			for (int k = 0; k < otherShips.size(); k++)
+			{
+				if (k == i)
+				{
+					continue;
+				}
+				if (CheckCollisionCircleRec(otherShips[i].getBullets()[j].getPosition(),
+											otherShips[i].getBullets()[j].getSize(),
+											otherShips[k].getCollisionRect()))
+				{
+					otherShips[i].getBullets().erase(otherShips[i].getBullets().begin() + j);
+					break;
+				}
+			}
 		}
 	}
 
