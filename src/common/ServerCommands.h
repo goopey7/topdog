@@ -34,12 +34,22 @@ struct ClientUpdateStatus
 	float velx;
 	float vely;
 	float angle;
-	bool fire;
 	short rotating; // -1 = left, 0 = none, 1 = right
 	float time;
 };
 
-#define SERVER_COMMANDS StartGame, NewClient, ClientDisconnected, ClientReady, ClientUpdateStatus
+struct ClientFire
+{
+	std::string name;
+	float posx;
+	float posy;
+	float velx;
+	float vely;
+	float time;
+};
+
+#define SERVER_COMMANDS                                                                            \
+	StartGame, NewClient, ClientDisconnected, ClientReady, ClientUpdateStatus, ClientFire
 
 using ServerCommand = std::variant<SERVER_COMMANDS>;
 
@@ -64,8 +74,13 @@ using ServerCommand = std::variant<SERVER_COMMANDS>;
 				else if constexpr (std::is_same_v<T, ClientUpdateStatus>)                          \
 				{                                                                                  \
 					ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx \
-					   << ":" << arg.vely << ":" << arg.angle << ":" << arg.fire << ":"            \
-					   << arg.rotating << ":" << arg.time;                                         \
+					   << ":" << arg.vely << ":" << arg.angle << ":" << arg.rotating << ":"        \
+					   << arg.time;                                                                \
+				}                                                                                  \
+				else if constexpr (std::is_same_v<T, ClientFire>)                                  \
+				{                                                                                  \
+					ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx \
+					   << ":" << arg.vely << ":" << arg.time;                                      \
 				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
@@ -95,15 +110,8 @@ inline ServerCommand parseServerCommand(const std::string& str)
 	}
 
 	auto cmd = srv_variant_from_index<ServerCommand>(std::stoi(tokens[0]));
-	if (tokens.size() == 1)
-	{
-		if (std::holds_alternative<StartGame>(cmd))
-		{
-			printf("Start Game Received\n");
-		}
-	}
 
-	if (tokens.size() == 10)
+	if (tokens.size() == 9)
 	{
 		if (std::holds_alternative<ClientUpdateStatus>(cmd))
 		{
@@ -113,9 +121,20 @@ inline ServerCommand parseServerCommand(const std::string& str)
 			std::get<ClientUpdateStatus>(cmd).velx = std::stof(tokens[4]);
 			std::get<ClientUpdateStatus>(cmd).vely = std::stof(tokens[5]);
 			std::get<ClientUpdateStatus>(cmd).angle = std::stof(tokens[6]);
-			std::get<ClientUpdateStatus>(cmd).fire = std::stoi(tokens[7]);
-			std::get<ClientUpdateStatus>(cmd).rotating = std::stoi(tokens[8]);
-			std::get<ClientUpdateStatus>(cmd).time = std::stof(tokens[9]);
+			std::get<ClientUpdateStatus>(cmd).rotating = std::stoi(tokens[7]);
+			std::get<ClientUpdateStatus>(cmd).time = std::stof(tokens[8]);
+		}
+	}
+	else if (tokens.size() == 7)
+	{
+		if (std::holds_alternative<ClientFire>(cmd))
+		{
+			std::get<ClientFire>(cmd).name = tokens[1];
+			std::get<ClientFire>(cmd).posx = std::stof(tokens[2]);
+			std::get<ClientFire>(cmd).posy = std::stof(tokens[3]);
+			std::get<ClientFire>(cmd).velx = std::stof(tokens[4]);
+			std::get<ClientFire>(cmd).vely = std::stof(tokens[5]);
+			std::get<ClientFire>(cmd).time = std::stof(tokens[6]);
 		}
 	}
 	else if (tokens.size() == 3)

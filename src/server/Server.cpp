@@ -207,7 +207,13 @@ void Server::processMsg(const ClientCommand msg, int index)
 	{
 		UpdateStatus us = std::get<UpdateStatus>(msg);
 		sendToClients(ClientUpdateStatus(name, us.posx, us.posy, us.velx, us.vely, us.angle,
-										 us.fire, us.rotating, us.time),
+										 us.rotating, us.time),
+					  index);
+	}
+	else if (std::holds_alternative<Fire>(msg))
+	{
+		Fire fire = std::get<Fire>(msg);
+		sendToClients(ClientFire(name, fire.posx, fire.posy, fire.velx, fire.vely, fire.time),
 					  index);
 	}
 }

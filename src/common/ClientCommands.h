@@ -24,12 +24,20 @@ struct UpdateStatus
 	float velx;
 	float vely;
 	float angle;
-	bool fire;
 	short rotating; // -1 = left, 0 = none, 1 = right
 	float time;
 };
 
-#define CLIENT_COMMANDS Disconnect, Ready, UpdateStatus
+struct Fire
+{
+	float posx;
+	float posy;
+	float velx;
+	float vely;
+	float time;
+};
+
+#define CLIENT_COMMANDS Disconnect, Ready, UpdateStatus, Fire
 
 using ClientCommand = std::variant<CLIENT_COMMANDS>;
 
@@ -45,12 +53,16 @@ using ClientCommand = std::variant<CLIENT_COMMANDS>;
 				if constexpr (std::is_same_v<T, UpdateStatus>)                                     \
 				{                                                                                  \
 					ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx << ":" << arg.vely \
-					   << ":" << arg.angle << ":" << arg.fire << ":" << arg.rotating << ":"        \
-					   << arg.time;                                                                \
+					   << ":" << arg.angle << ":" << arg.rotating << ":" << arg.time;              \
 				}                                                                                  \
 				else if constexpr (std::is_same_v<T, Ready>)                                       \
 				{                                                                                  \
 					ss << ":" << arg.ready;                                                        \
+				}                                                                                  \
+				else if constexpr (std::is_same_v<T, Fire>)                                        \
+				{                                                                                  \
+					ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx << ":" << arg.vely \
+					   << ":" << arg.time;                                                         \
 				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
@@ -82,7 +94,7 @@ inline ClientCommand parseClientCommand(const std::string& str)
 	auto cmd = variant_from_index<ClientCommand>(std::stoi(tokens[0]));
 
 	// initialize structs with arguments if necessary
-	if (tokens.size() == 9)
+	if (tokens.size() == 8)
 	{
 		if (std::holds_alternative<UpdateStatus>(cmd))
 		{
@@ -92,10 +104,22 @@ inline ClientCommand parseClientCommand(const std::string& str)
 			us.velx = std::stof(tokens[3]);
 			us.vely = std::stof(tokens[4]);
 			us.angle = std::stof(tokens[5]);
-			us.fire = std::stoi(tokens[6]);
-			us.rotating = std::stoi(tokens[7]);
-			us.time = std::stof(tokens[8]);
+			us.rotating = std::stoi(tokens[6]);
+			us.time = std::stof(tokens[7]);
 			cmd = us;
+		}
+	}
+	else if (tokens.size() == 6)
+	{
+		if (std::holds_alternative<Fire>(cmd))
+		{
+			auto fire = std::get<Fire>(cmd);
+			fire.posx = std::stof(tokens[1]);
+			fire.posy = std::stof(tokens[2]);
+			fire.velx = std::stof(tokens[3]);
+			fire.vely = std::stof(tokens[4]);
+			fire.time = std::stof(tokens[5]);
+			cmd = fire;
 		}
 	}
 	else if (tokens.size() == 2)

@@ -30,6 +30,7 @@ class Ship
 
 		void calculateAnimation();
 		void fire();
+		void fire(float posx, float posy, float velx, float vely, float time);
 
 		void setRotationDirection(short direction) { rotating = direction; }
 		short getRotationDirection() const { return rotating; }

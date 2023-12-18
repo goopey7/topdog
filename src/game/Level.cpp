@@ -1,6 +1,7 @@
 // Sam Collier 2023
 
 #include "Level.h"
+#include <cmath>
 #include <iostream>
 #include <thread>
 
@@ -104,6 +105,15 @@ Level::Level(std::queue<std::unique_ptr<Scene>>* scenes, Client* client,
 
 void Level::updateServer()
 {
+	if (IsKeyPressed(KEY_SPACE))
+	{
+		float radians = ship.getRotation() * DEG2RAD;
+		Vector2 direction = {sinf(radians), -cosf(radians)};
+		auto fire =
+			Fire(ship.getPosition().x, ship.getPosition().y, direction.x, direction.y, GetTime());
+		client->sendToServer(fire);
+	}
+
 	if (timeSinceLastSend < clientSendRate)
 	{
 		return;
@@ -116,7 +126,7 @@ void Level::updateServer()
 		(lastRotationSent != ship.getRotation()))
 	{
 		auto us = UpdateStatus(ship.getPosition().x, ship.getPosition().y, ship.getVelocity().x,
-							   ship.getVelocity().y, ship.getRotation(), false,
+							   ship.getVelocity().y, ship.getRotation(),
 							   ship.getRotationDirection(), GetTime());
 		client->sendToServer(us);
 		timeSinceLastSend = 0;
@@ -128,11 +138,6 @@ void Level::updateServer()
 
 void Level::updateClient()
 {
-	if (timeSinceLastUpdate < clientUpdateRate)
-	{
-		return;
-	}
-
 	std::optional<ServerCommand> cmdOpt = client->listenToServer();
 
 	if (!cmdOpt.has_value())
@@ -155,16 +160,23 @@ void Level::updateClient()
 									   std::get<ClientUpdateStatus>(cmd).vely});
 				otherShip.setRotation(std::get<ClientUpdateStatus>(cmd).angle);
 				otherShip.setRotationDirection(std::get<ClientUpdateStatus>(cmd).rotating);
-				if (std::get<ClientUpdateStatus>(cmd).fire)
-				{
-					otherShip.fire();
-				}
 				if (clientUpdates[&otherShip].size() == 3)
 				{
 					clientUpdates[&otherShip].erase(clientUpdates[&otherShip].begin());
 				}
 				clientUpdates[&otherShip].push_back(std::get<ClientUpdateStatus>(cmd));
 				break;
+			}
+		}
+	}
+	else if (std::holds_alternative<ClientFire>(cmd))
+	{
+		for (Ship& otherShip : otherShips)
+		{
+			if (otherShip.getName() == std::get<ClientFire>(cmd).name)
+			{
+				ClientFire fire = std::get<ClientFire>(cmd);
+				otherShip.fire(fire.posx, fire.posy, fire.velx, fire.vely, fire.time);
 			}
 		}
 	}

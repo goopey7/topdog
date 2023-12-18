@@ -76,8 +76,6 @@ void Ship::handleInput(float dt)
 	if (IsKeyPressed(KEY_SPACE))
 	{
 		fire();
-		auto us = UpdateStatus(position.x, position.y, velocity.x, velocity.y, rotation, true);
-		client->sendToServer(us);
 	}
 }
 
@@ -101,18 +99,32 @@ void Ship::update(float dt)
 				const ClientUpdateStatus msg1 = clientUpdates->at(this)[1];
 				const ClientUpdateStatus msg2 = clientUpdates->at(this)[0];
 
-				float v0X = (msg1.posx - msg2.posx) / (msg1.time - msg2.time);
-				float v1X = (msg0.posx - msg1.posx) / (msg0.time - msg1.time);
-				float aX = (v0X - v1X) / (msg0.time - msg2.time);
+				// figure out if the signs of the velocities are the same
+				bool sameSigns = ((msg0.velx > 0 && msg1.velx > 0 && msg2.velx > 0) ||
+								  (msg0.velx < 0 && msg1.velx < 0 && msg2.velx < 0)) &&
+								 ((msg0.vely > 0 && msg1.vely > 0 && msg2.vely > 0) ||
+								  (msg0.vely < 0 && msg1.vely < 0 && msg2.vely < 0));
 
-				float v0Y = (msg1.posy - msg2.posy) / (msg1.time - msg2.time);
-				float v1Y = (msg0.posy - msg1.posy) / (msg0.time - msg1.time);
-				float aY = (v0Y - v1Y) / (msg0.time - msg2.time);
+				if (sameSigns)
+				{
+					float v0X = (msg1.posx - msg2.posx) / (msg1.time - msg2.time);
+					float v1X = (msg0.posx - msg1.posx) / (msg0.time - msg1.time);
+					float aX = (v0X - v1X) / (msg0.time - msg2.time);
 
-				float dt = GetTime() - msg0.time;
+					float v0Y = (msg1.posy - msg2.posy) / (msg1.time - msg2.time);
+					float v1Y = (msg0.posy - msg1.posy) / (msg0.time - msg1.time);
+					float aY = (v0Y - v1Y) / (msg0.time - msg2.time);
 
-				position.x = msg0.posx + v0X * dt + 0.5f * aX * dt * dt;
-				position.y = msg0.posy + v0Y * dt + 0.5f * aY * dt * dt;
+					float dt = GetTime() - msg0.time;
+
+					position.x = msg0.posx + v0X * dt + 0.5f * aX * dt * dt;
+					position.y = msg0.posy + v0Y * dt + 0.5f * aY * dt * dt;
+				}
+				else
+				{
+					position.x += velocity.x * dt;
+					position.y += velocity.y * dt;
+				}
 			}
 		}
 	}
@@ -184,3 +196,18 @@ void Ship::calculateAnimation()
 		animationIndex = 0;
 	}
 }
+
+void Ship::fire(float posx, float posy, float velx, float vely, float time)
+{
+	if (bullets.size() >= 20)
+	{
+		bullets.erase(bullets.begin());
+	}
+	float dt = GetTime() - time;
+	float x = posx + velx * dt;
+	float y = posy + vely * dt;
+	Vector2 pos = {x, y};
+	Vector2 vel = {velx, vely};
+	bullets.emplace_back(pos, vel);
+}
+
