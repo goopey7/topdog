@@ -279,3 +279,4 @@ std::optional<ServerCommand> Client::listenUDP()
 	std::string msgStr = msg;
 	return parseServerCommand(msg);
 }
+

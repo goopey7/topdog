@@ -2,10 +2,10 @@
 #pragma once
 #include <string>
 #ifndef WIN32_
-	#include <arpa/inet.h>
-	#include <sys/socket.h>
-	#include <sys/ioctl.h>
-	#include <unistd.h>
+#include <arpa/inet.h>
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
 #endif
 
 class Client
@@ -23,6 +23,9 @@ class Client
 	const std::string& getName() const;
 	sockaddr_in getUDPAddr() const;
 
+	bool getIsDead() const { return isDead; }
+	void setIsDead(bool isDead) { this->isDead = isDead; }
+
   private:
 	int tcpSocket;
 	int udpSocket;
@@ -30,4 +33,6 @@ class Client
 	socklen_t udpAddrLen;
 	bool bIsReady = false;
 	std::string name;
+
+	bool isDead = false;
 };

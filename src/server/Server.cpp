@@ -146,6 +146,36 @@ void Server::processMsg(const ClientCommand msg, int index, const std::string& d
 	{
 		HealthChange hc = std::get<HealthChange>(msg);
 		sendToClientsTCP(ClientHealthChange(name, hc.health, hc.isDead), index);
+		if (hc.isDead)
+		{
+			// mark client as dead
+			int numDead = 0;
+			for (int i = 0; i < clients.size(); i++)
+			{
+				if (clients[i].getName() == name)
+				{
+					clients[i].setIsDead(true);
+				}
+				if (clients[i].getIsDead())
+				{
+					numDead++;
+				}
+			}
+
+			// game over
+			if (numDead == clients.size() - 1)
+			{
+				// find the winner
+				for (int i = 0; i < clients.size(); i++)
+				{
+					if (!clients[i].getIsDead())
+					{
+						sendToClientsTCP(GameOver(clients[i].getName()));
+						break;
+					}
+				}
+			}
+		}
 	}
 	else
 	{

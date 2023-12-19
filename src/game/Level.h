@@ -47,4 +47,7 @@ class Level : public Scene
 	long long* gameStartTime;
 
 	std::map<Ship*, std::vector<ClientUpdateVel>> clientUpdates;
+
+	bool gameOver = false;
+	std::string winner;
 };

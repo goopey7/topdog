@@ -16,6 +16,11 @@ struct StartGame
 	double time;
 };
 
+struct GameOver
+{
+	std::string winner;
+};
+
 struct NewClient
 {
 	std::string name;
@@ -82,7 +87,7 @@ struct ClientHealthChange
 
 #define SERVER_COMMANDS                                                                            \
 	StartGame, NewClient, ClientDisconnected, ClientReady, ClientFire, ClientUpdateVel,            \
-		ClientUpdatePos, ClientRotStart, ClientRotEnd, ClientHealthChange
+		ClientUpdatePos, ClientRotStart, ClientRotEnd, ClientHealthChange, GameOver
 
 using ServerCommand = std::variant<SERVER_COMMANDS>;
 
@@ -135,6 +140,10 @@ using ServerCommand = std::variant<SERVER_COMMANDS>;
 				else if constexpr (std::is_same_v<T, ClientHealthChange>)                          \
 				{                                                                                  \
 					ss << ":" << arg.name << ":" << arg.health << ":" << arg.isDead;               \
+				}                                                                                  \
+				else if constexpr (std::is_same_v<T, GameOver>)                                    \
+				{                                                                                  \
+					ss << ":" << arg.winner;                                                       \
 				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
@@ -243,6 +252,10 @@ inline ServerCommand parseServerCommand(const std::string& str)
 		else if (std::holds_alternative<StartGame>(cmd))
 		{
 			std::get<StartGame>(cmd).time = std::stof(tokens[1]);
+		}
+		else if (std::holds_alternative<GameOver>(cmd))
+		{
+			std::get<GameOver>(cmd).winner = tokens[1];
 		}
 	}
 

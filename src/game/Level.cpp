@@ -107,6 +107,13 @@ void Level::draw()
 		otherShip.draw();
 	}
 	ship.draw();
+
+	if (gameOver)
+	{
+		std::string winMsg = winner + " wins!";
+		DrawText(winMsg.c_str(), GetScreenWidth() / 2 - MeasureText(winMsg.c_str(), 50) / 2,
+				 GetScreenHeight() / 2 - 50, 50, WHITE);
+	}
 }
 
 void Level::transitionToMainMenu() { scenes->pop(); }
@@ -192,7 +199,12 @@ void Level::updateClient()
 		ServerCommand cmd = cmdQueue.front();
 		cmdQueue.pop();
 
-		if (std::holds_alternative<ClientUpdateVel>(cmd))
+		if (std::holds_alternative<GameOver>(cmd))
+		{
+			winner = std::get<GameOver>(cmd).winner;
+			gameOver = true;
+		}
+		else if (std::holds_alternative<ClientUpdateVel>(cmd))
 		{
 			// find the ship with the same name as the one in the command
 			for (Ship& otherShip : otherShips)
