@@ -203,6 +203,17 @@ void Level::updateServer()
 		client->sendToServerTCP(fire);
 	}
 
+	if (IsKeyPressed(KEY_W) || IsKeyPressed(KEY_UP))
+	{
+		ship.setGas(true);
+		client->sendToServerTCP(cmd::Gas(true));
+	}
+	else if (IsKeyReleased(KEY_W) || IsKeyReleased(KEY_UP))
+	{
+		ship.setGas(false);
+		client->sendToServerTCP(cmd::Gas(false));
+	}
+
 	timeSinceLastPositionalUpdate += GetFrameTime();
 	timeSinceLastVelocityUpdate += GetFrameTime();
 	timeSinceLastRotationalUpdate += GetFrameTime();
@@ -319,7 +330,7 @@ void Level::updateClient()
 			{
 				if (otherShip.getName() == std::get<ClientGas>(cmd).name)
 				{
-					otherShip.setGas(false);
+					otherShip.setGas(std::get<ClientGas>(cmd).gas);
 					break;
 				}
 			}
