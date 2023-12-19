@@ -108,13 +108,12 @@ void Ship::update(float dt)
 				// clamp change in velocity so that the ship doesn't seem to teleport when velocity
 				// changes (still kinda happens at 500ms+)
 				float dvx = msg0.velx - msg1.velx;
-				dvx = std::clamp(dvx, -10.f, 10.f);
-
 				float dvy = msg0.vely - msg1.vely;
-				dvy = std::clamp(dvy, -10.f, 10.f);
 
-				velocity.x = msg0.velx + dvx;
-				velocity.y = msg0.vely + dvy;
+				float dt = getElapsedTimeInSeconds(gameStartTime) - msg0.time;
+
+				velocity.x = msg0.velx + dvx * dt;
+				velocity.y = msg0.vely + dvy * dt;
 			}
 		}
 	}
