@@ -14,6 +14,35 @@ void Level::init()
 		otherShip.init(false, c.getName(), nullptr, &clientUpdates, *gameStartTime);
 		otherShips.push_back(otherShip);
 	}
+
+	// get the clients in alphabetical order
+	std::vector<std::string> names;
+	for (const Client& c : *otherClients)
+	{
+		names.push_back(c.getName());
+	}
+	names.push_back(client->getName());
+
+	std::sort(names.begin(), names.end());
+
+	for (int i = 0; i < names.size(); i++)
+	{
+		if (names[i] == client->getName())
+		{
+			ship.setPosition({100.f + i * 100.f, 50.f + i * 50.f});
+		}
+		else
+		{
+			for (Ship& otherShip : otherShips)
+			{
+				if (otherShip.getName() == names[i])
+				{
+					otherShip.setPosition({100.f + i * 100.f, 50.f + i * 50.f});
+					break;
+				}
+			}
+		}
+	}
 }
 
 void Level::update(float dt)
@@ -120,7 +149,8 @@ void Level::draw()
 		std::string winMsg = winner + " wins!";
 		DrawText(winMsg.c_str(), GetScreenWidth() / 2 - MeasureText(winMsg.c_str(), 50) / 2,
 				 GetScreenHeight() / 2 - 50, 50, WHITE);
-		DrawText("Press SPACE to exit", GetScreenWidth() / 2 - MeasureText("Press space to exit", 20) / 2,
+		DrawText("Press SPACE to exit",
+				 GetScreenWidth() / 2 - MeasureText("Press space to exit", 20) / 2,
 				 GetScreenHeight() / 2 + 50, 20, WHITE);
 	}
 	else
