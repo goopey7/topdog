@@ -89,7 +89,13 @@ void Ship::update(float dt)
 	{
 		handleInput(dt);
 	}
-	else
+	else if (interpIndex < steps)
+	{
+		position.x += interpStep.x;
+		position.y += interpStep.y;
+		interpIndex++;
+	}
+	else if (gas)
 	{
 		if (clientUpdates->contains(this))
 		{
@@ -217,3 +223,11 @@ void Ship::takeDamage(float damage)
 		isAlive = false;
 	}
 }
+
+void Ship::setPositionToInterp(Vector2 position)
+{
+	Vector2 diff = {position.x - this->position.x, position.y - this->position.y};
+	interpIndex = 0;
+	interpStep = {diff.x / steps, diff.y / steps};
+}
+

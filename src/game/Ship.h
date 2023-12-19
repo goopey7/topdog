@@ -26,6 +26,7 @@ class Ship
 	float getRotation() const { return rotation; }
 
 	void setPosition(const Vector2& position) { this->position = position; }
+	void setPositionToInterp(Vector2 position);
 	void setVelocity(const Vector2& velocity) { this->velocity = velocity; }
 	void setRotation(float rotation) { this->rotation = rotation; }
 
@@ -46,7 +47,10 @@ class Ship
 	float getHealth() const { return health; }
 	float isDead() const { return !isAlive; }
 
+	void setGas(bool gas) {this->gas = gas;}
+
   private:
+	bool gas = false;
 	Vector2 position = {320, 100};
 	Vector2 velocity = {0, 0};
 	float rotation = 12;
@@ -75,4 +79,9 @@ class Ship
 	std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates;
 
 	long long gameStartTime;
+
+	// interpolation
+	int steps = 10;
+	Vector2 interpStep = {0, 0};
+	int interpIndex = 10;
 };

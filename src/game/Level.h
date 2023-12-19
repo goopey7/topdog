@@ -35,10 +35,10 @@ class Level : public Scene
 	Vector2 lastVelocitySent = {-1.f, -12.f};
 	float lastRotationSent = -1.f;
 
-	float positionalUpdateRate = 0.7f;
+	float positionalUpdateRate = 1.f;
 	float timeSinceLastPositionalUpdate = 0;
 
-	float velocityUpdateRate = 0.f;
+	float velocityUpdateRate = 0.5f;
 	float timeSinceLastVelocityUpdate = 0;
 
 	float rotationalUpdateRate = 0.7f;

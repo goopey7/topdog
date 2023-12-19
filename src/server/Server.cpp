@@ -114,6 +114,11 @@ void Server::processMsg(const ClientCommand msg, int index, const std::string& d
 		sendToClientsTCP(cmd::ClientDisconnected(name), index);
 		clients.erase(clients.begin() + index);
 	}
+	else if (std::holds_alternative<Gas>(msg))
+	{
+		bool gas = std::get<Gas>(msg).gas;
+		sendToClientsTCP(cmd::ClientGas(name, gas), index);
+	}
 	else if (std::holds_alternative<Ready>(msg))
 	{
 		Ready readyCmd = std::get<Ready>(msg);

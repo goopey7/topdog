@@ -85,72 +85,61 @@ struct ClientHealthChange
 	bool isDead;
 };
 
+struct ClientGas
+{
+	std::string name;
+	bool gas;
+};
+
 namespace cmd
 {
-	inline StartGame StartGame(double time)
-	{
-		return {time};
-	}
+inline StartGame StartGame(double time) { return {time}; }
 
-	inline NewClient NewClient(const std::string& name)
-	{
-		return {name};
-	}
+inline ClientGas ClientGas(const std::string& name, bool gas) { return {name, gas}; }
 
-	inline ClientDisconnected ClientDisconnected(const std::string& name)
-	{
-		return {name};
-	}
+inline NewClient NewClient(const std::string& name) { return {name}; }
 
-	inline ClientReady ClientReady(const std::string& name, bool ready)
-	{
-		return {name, ready};
-	}
+inline ClientDisconnected ClientDisconnected(const std::string& name) { return {name}; }
 
-	inline ClientUpdateVel ClientUpdateVel(const std::string& name, float velx, float vely,
-										   float time)
-	{
-		return {name, velx, vely, time};
-	}
+inline ClientReady ClientReady(const std::string& name, bool ready) { return {name, ready}; }
 
-	inline ClientUpdatePos ClientUpdatePos(const std::string& name, float posx, float posy,
-										   float time)
-	{
-		return {name, posx, posy, time};
-	}
-
-	inline ClientRotStart ClientRotStart(const std::string& name, float angle, int dir,
-										 float time)
-	{
-		return {name, angle, dir, time};
-	}
-
-	inline ClientRotEnd ClientRotEnd(const std::string& name, float angle, float time)
-	{
-		return {name, angle, time};
-	}
-
-	inline ClientFire ClientFire(const std::string& name, float posx, float posy, float velx,
-								 float vely, float time)
-	{
-		return {name, posx, posy, velx, vely, time};
-	}
-
-	inline ClientHealthChange ClientHealthChange(const std::string& name, float health,
-												 bool isDead)
-	{
-		return {name, health, isDead};
-	}
-
-	inline GameOver GameOver(const std::string& winner)
-	{
-		return {winner};
-	}
+inline ClientUpdateVel ClientUpdateVel(const std::string& name, float velx, float vely, float time)
+{
+	return {name, velx, vely, time};
 }
+
+inline ClientUpdatePos ClientUpdatePos(const std::string& name, float posx, float posy, float time)
+{
+	return {name, posx, posy, time};
+}
+
+inline ClientRotStart ClientRotStart(const std::string& name, float angle, int dir, float time)
+{
+	return {name, angle, dir, time};
+}
+
+inline ClientRotEnd ClientRotEnd(const std::string& name, float angle, float time)
+{
+	return {name, angle, time};
+}
+
+inline ClientFire ClientFire(const std::string& name, float posx, float posy, float velx,
+							 float vely, float time)
+{
+	return {name, posx, posy, velx, vely, time};
+}
+
+inline ClientHealthChange ClientHealthChange(const std::string& name, float health, bool isDead)
+{
+	return {name, health, isDead};
+}
+
+inline GameOver GameOver(const std::string& winner) { return {winner}; }
+} // namespace cmd
 
 #define SERVER_COMMANDS                                                                            \
 	StartGame, NewClient, ClientDisconnected, ClientReady, ClientFire, ClientUpdateVel,            \
-		ClientUpdatePos, ClientRotStart, ClientRotEnd, ClientHealthChange, GameOver
+		ClientUpdatePos, ClientRotStart, ClientRotEnd, ClientHealthChange, GameOver, ClientGas
 
 using ServerCommand = std::variant<SERVER_COMMANDS>;
 
@@ -165,6 +154,10 @@ inline std::string stringifyServerCommand(const ServerCommand& cmd)
 			if constexpr (std::is_same_v<T, NewClient> || std::is_same_v<T, ClientDisconnected>)
 			{
 				ss << ":" << arg.name;
+			}
+			else if constexpr (std::is_same_v<T, ClientGas>)
+			{
+				ss << ":" << arg.name << ":" << arg.gas;
 			}
 			else if constexpr (std::is_same_v<T, ClientReady>)
 			{
@@ -295,6 +288,11 @@ inline ServerCommand parseServerCommand(const std::string& str)
 		{
 			std::get<ClientReady>(cmd).name = tokens[1];
 			std::get<ClientReady>(cmd).ready = std::stoi(tokens[2]);
+		}
+		if (std::holds_alternative<ClientGas>(cmd))
+		{
+			std::get<ClientGas>(cmd).name = tokens[1];
+			std::get<ClientGas>(cmd).gas = std::stoi(tokens[2]);
 		}
 	}
 	else if (tokens.size() == 2)

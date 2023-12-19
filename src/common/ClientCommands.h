@@ -59,51 +59,37 @@ struct HealthChange
 	bool isDead;
 };
 
+struct Gas
+{
+	bool gas;
+};
+
 namespace cmd
 {
-	inline Disconnect Disconnect()
-	{
-		return {};
-	}
+inline Disconnect Disconnect() { return {}; }
 
-	inline Ready Ready(bool ready)
-	{
-		return {ready};
-	}
+inline Gas Gas(bool gas) { return {gas}; }
 
-	inline UpdatePos UpdatePos(float posx, float posy, float time)
-	{
-		return {posx, posy, time};
-	}
+inline Ready Ready(bool ready) { return {ready}; }
 
-	inline UpdateVel UpdateVel(float velx, float vely, float time)
-	{
-		return {velx, vely, time};
-	}
+inline UpdatePos UpdatePos(float posx, float posy, float time) { return {posx, posy, time}; }
 
-	inline RotStart RotStart(float angle, int dir, float time)
-	{
-		return {angle, dir, time};
-	}
+inline UpdateVel UpdateVel(float velx, float vely, float time) { return {velx, vely, time}; }
 
-	inline RotEnd RotEnd(float angle, float time)
-	{
-		return {angle, time};
-	}
+inline RotStart RotStart(float angle, int dir, float time) { return {angle, dir, time}; }
 
-	inline Fire Fire(float posx, float posy, float velx, float vely, float time)
-	{
-		return {posx, posy, velx, vely, time};
-	}
+inline RotEnd RotEnd(float angle, float time) { return {angle, time}; }
 
-	inline HealthChange HealthChange(float health, bool isDead)
-	{
-		return {health, isDead};
-	}
+inline Fire Fire(float posx, float posy, float velx, float vely, float time)
+{
+	return {posx, posy, velx, vely, time};
 }
 
+inline HealthChange HealthChange(float health, bool isDead) { return {health, isDead}; }
+} // namespace cmd
+
 #define CLIENT_COMMANDS                                                                            \
-	Disconnect, Ready, Fire, UpdatePos, UpdateVel, RotStart, RotEnd, HealthChange
+	Disconnect, Ready, Fire, UpdatePos, UpdateVel, RotStart, RotEnd, HealthChange, Gas
 
 using ClientCommand = std::variant<CLIENT_COMMANDS>;
 
@@ -144,6 +130,10 @@ inline std::string stringifyClientCommand(const ClientCommand& cmd)
 			else if constexpr (std::is_same_v<T, HealthChange>)
 			{
 				ss << ":" << arg.health << ":" << arg.isDead;
+			}
+			else if constexpr (std::is_same_v<T, Gas>)
+			{
+				ss << ":" << arg.gas;
 			}
 		},
 		cmd);
@@ -252,6 +242,10 @@ inline std::vector<ClientCommand> parseClientCommands(const std::string& str)
 			if (std::holds_alternative<Ready>(cmd))
 			{
 				std::get<Ready>(cmd).ready = std::stoi(tokens[1]);
+			}
+			else if (std::holds_alternative<Gas>(cmd))
+			{
+				std::get<Gas>(cmd).gas = std::stoi(tokens[1]);
 			}
 		}
 

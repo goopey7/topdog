@@ -308,7 +308,18 @@ void Level::updateClient()
 				if (otherShip.getName() == std::get<ClientUpdatePos>(cmd).name)
 				{
 					auto up = std::get<ClientUpdatePos>(cmd);
-					otherShip.setPosition({up.posx, up.posy});
+					otherShip.setPositionToInterp({up.posx, up.posy});
+					break;
+				}
+			}
+		}
+		else if (std::holds_alternative<ClientGas>(cmd))
+		{
+			for (Ship& otherShip : otherShips)
+			{
+				if (otherShip.getName() == std::get<ClientGas>(cmd).name)
+				{
+					otherShip.setGas(false);
 					break;
 				}
 			}
