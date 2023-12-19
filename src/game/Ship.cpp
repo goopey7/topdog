@@ -1,14 +1,15 @@
 // Sam Collier 2023
 #include "Ship.h"
+#include "Time.h"
 #include <algorithm>
 #include <cmath>
 #include <raylib.h>
-#include "Time.h"
 
 #include "ClientCommands.h"
 
 void Ship::init(bool playerControlled, const std::string& name, Client* client,
-				std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates, long long gameStartTime)
+				std::map<Ship*, std::vector<ClientUpdateVel>>* clientUpdates,
+				long long gameStartTime)
 {
 	textures.push_back(LoadTexture("res/sprites/shipIdle.png"));
 	textures.push_back(LoadTexture("res/sprites/shipActive.png"));
@@ -137,7 +138,10 @@ void Ship::fire()
 	bullets.emplace_back(position, rotation);
 }
 
-void Ship::onCollision(const Bullet& other) { takeDamage(20.f); }
+void Ship::onCollision(const Bullet& other)
+{
+	takeDamage(20.f);
+}
 
 void Ship::draw()
 {

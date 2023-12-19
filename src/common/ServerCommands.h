@@ -73,9 +73,16 @@ struct ClientFire
 	float time;
 };
 
+struct ClientHealthChange
+{
+	std::string name;
+	float health;
+	bool isDead;
+};
+
 #define SERVER_COMMANDS                                                                            \
 	StartGame, NewClient, ClientDisconnected, ClientReady, ClientFire, ClientUpdateVel,            \
-		ClientUpdatePos, ClientRotStart, ClientRotEnd
+		ClientUpdatePos, ClientRotStart, ClientRotEnd, ClientHealthChange
 
 using ServerCommand = std::variant<SERVER_COMMANDS>;
 
@@ -124,6 +131,10 @@ using ServerCommand = std::variant<SERVER_COMMANDS>;
 				else if constexpr (std::is_same_v<T, StartGame>)                                   \
 				{                                                                                  \
 					ss << ":" << arg.time;                                                         \
+				}                                                                                  \
+				else if constexpr (std::is_same_v<T, ClientHealthChange>)                          \
+				{                                                                                  \
+					ss << ":" << arg.name << ":" << arg.health << ":" << arg.isDead;               \
 				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
@@ -191,6 +202,12 @@ inline ServerCommand parseServerCommand(const std::string& str)
 			std::get<ClientRotEnd>(cmd).name = tokens[1];
 			std::get<ClientRotEnd>(cmd).angle = std::stof(tokens[2]);
 			std::get<ClientRotEnd>(cmd).time = std::stof(tokens[3]);
+		}
+		else if (std::holds_alternative<ClientHealthChange>(cmd))
+		{
+			std::get<ClientHealthChange>(cmd).name = tokens[1];
+			std::get<ClientHealthChange>(cmd).health = std::stof(tokens[2]);
+			std::get<ClientHealthChange>(cmd).isDead = std::stoi(tokens[3]);
 		}
 	}
 	else if (tokens.size() == 7)

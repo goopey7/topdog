@@ -64,10 +64,7 @@ void Server::sendToClientsUDP(const ServerCommand& cmd, int indexToSkip)
 	}
 }
 
-void Server::acceptIncomingClients()
-{
-	acceptTCP();
-}
+void Server::acceptIncomingClients() { acceptTCP(); }
 
 void Server::handleClientLobbyMsgs()
 {
@@ -144,6 +141,15 @@ void Server::processMsg(const ClientCommand msg, int index, const std::string& d
 		Fire fire = std::get<Fire>(msg);
 		sendToClientsTCP(ClientFire(name, fire.posx, fire.posy, fire.velx, fire.vely, fire.time),
 						 index);
+	}
+	else if (std::holds_alternative<HealthChange>(msg))
+	{
+		HealthChange hc = std::get<HealthChange>(msg);
+		sendToClientsTCP(ClientHealthChange(name, hc.health, hc.isDead), index);
+	}
+	else
+	{
+		std::cerr << "Unknown command from client " << index << ": " << debug << std::endl;
 	}
 }
 
@@ -253,7 +259,8 @@ void Server::acceptTCP()
 
 	std::cout << "Accpt: Client " << clients.size() << ": " << clientMsg << std::endl;
 	std::string clientName = std::string(clientMsg).substr(0, std::string(clientMsg).find(":"));
-	int clientPortUDP = std::stoi(std::string(clientMsg).substr(std::string(clientMsg).find(":") + 1));
+	int clientPortUDP =
+		std::stoi(std::string(clientMsg).substr(std::string(clientMsg).find(":") + 1));
 	std::cout << "Accpt: Client " << clients.size() << " connected!" << std::endl;
 
 	// Set socket to non-blocking

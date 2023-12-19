@@ -41,6 +41,11 @@ class Ship
 	void endRotation(float angle);
 
 	void takeDamage(float damage);
+	void setHealth(float health) { this->health = health; }
+	void setDead(bool isDead) { isAlive = !isDead; }
+
+	float getHealth() const { return health; }
+	float isDead() const { return !isAlive; }
 
   private:
 	Vector2 position = {320, 100};

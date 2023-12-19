@@ -53,7 +53,14 @@ struct Fire
 	float time;
 };
 
-#define CLIENT_COMMANDS Disconnect, Ready, Fire, UpdatePos, UpdateVel, RotStart, RotEnd
+struct HealthChange
+{
+	float health;
+	bool isDead;
+};
+
+#define CLIENT_COMMANDS                                                                            \
+	Disconnect, Ready, Fire, UpdatePos, UpdateVel, RotStart, RotEnd, HealthChange
 
 using ClientCommand = std::variant<CLIENT_COMMANDS>;
 
@@ -92,6 +99,10 @@ using ClientCommand = std::variant<CLIENT_COMMANDS>;
 					ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx << ":" << arg.vely \
 					   << ":" << arg.time;                                                         \
 				}                                                                                  \
+				else if constexpr (std::is_same_v<T, HealthChange>)                                \
+				{                                                                                  \
+					ss << ":" << arg.health << ":" << arg.isDead;                                  \
+				}                                                                                  \
 			},                                                                                     \
 			cmd);                                                                                  \
 		ss << ":";                                                                                 \
@@ -107,7 +118,6 @@ template <typename V> auto variant_from_index(size_t index) -> V
 
 inline std::vector<ClientCommand> parseClientCommands(const std::string& str)
 {
-
 	// split string by '+'
 	std::vector<std::string> commands;
 	int start = 0;
@@ -173,6 +183,13 @@ inline std::vector<ClientCommand> parseClientCommands(const std::string& str)
 				ur.angle = std::stof(tokens[1]);
 				ur.time = std::stof(tokens[2]);
 				cmd = ur;
+			}
+			else if (std::holds_alternative<HealthChange>(cmd))
+			{
+				auto hc = std::get<HealthChange>(cmd);
+				hc.health = std::stof(tokens[1]);
+				hc.isDead = std::stoi(tokens[2]);
+				cmd = hc;
 			}
 		}
 		else if (tokens.size() == 6)

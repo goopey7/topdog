@@ -44,6 +44,7 @@ void Level::update(float dt)
 			{
 				otherShips[i].getBullets().erase(otherShips[i].getBullets().begin() + j);
 				ship.onCollision(otherShips[i].getBullets()[j]);
+				client->sendToServerTCP(HealthChange(ship.getHealth(), ship.isDead()));
 				break;
 			}
 
@@ -205,6 +206,18 @@ void Level::updateClient()
 						clientUpdates[&otherShip].erase(clientUpdates[&otherShip].begin());
 					}
 					clientUpdates[&otherShip].push_back(std::get<ClientUpdateVel>(cmd));
+					break;
+				}
+			}
+		}
+		else if (std::holds_alternative<ClientHealthChange>(cmd))
+		{
+			for (Ship& otherShip : otherShips)
+			{
+				if (otherShip.getName() == std::get<ClientHealthChange>(cmd).name)
+				{
+					otherShip.setHealth(std::get<ClientHealthChange>(cmd).health);
+					otherShip.setDead(std::get<ClientHealthChange>(cmd).isDead);
 					break;
 				}
 			}
