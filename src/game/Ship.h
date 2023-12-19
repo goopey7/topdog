@@ -17,7 +17,6 @@ class Ship
 			  long long gameStartTime);
 	void update(float dt);
 	void draw();
-	void onCollision(const Bullet& other);
 	std::vector<Bullet>& getBullets() { return bullets; }
 	Rectangle getCollisionRect() const;
 	const std::string& getName() const { return name; }

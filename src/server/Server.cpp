@@ -84,7 +84,14 @@ void Server::handleClientLobbyMsgs()
 	}
 }
 
-void Server::runGame() { receiveAndHandleMsgs(); }
+void Server::runGame()
+{
+	if (clients.empty())
+	{
+		bShouldClose = true;
+	}
+	receiveAndHandleMsgs();
+}
 
 bool Server::clientsAreReady() const
 {
@@ -171,7 +178,6 @@ void Server::processMsg(const ClientCommand msg, int index, const std::string& d
 					if (!clients[i].getIsDead())
 					{
 						sendToClientsTCP(GameOver(clients[i].getName()));
-						bShouldClose = true;
 						break;
 					}
 				}

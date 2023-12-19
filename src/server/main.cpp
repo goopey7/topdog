@@ -17,4 +17,5 @@ int main()
 			server.runGame();
 		}
 	}
+	std::cout << "Server shutting down..." << std::endl;
 }

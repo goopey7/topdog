@@ -175,7 +175,7 @@ inline ServerCommand parseServerCommand(const std::string& str)
 	// check if tokens[0] is a number
 	if (tokens.size() == 0 || !std::all_of(tokens[0].begin(), tokens[0].end(), ::isdigit))
 	{
-		throw std::runtime_error("Invalid Server Command: " + str);
+		throw std::runtime_error("Invalid server command> " + str);
 	}
 
 	auto cmd = srv_variant_from_index<ServerCommand>(std::stoi(tokens[0]));

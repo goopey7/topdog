@@ -138,11 +138,6 @@ void Ship::fire()
 	bullets.emplace_back(position, rotation);
 }
 
-void Ship::onCollision(const Bullet& other)
-{
-	takeDamage(20.f);
-}
-
 void Ship::draw()
 {
 	if (isAlive)
