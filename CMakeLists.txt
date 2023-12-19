@@ -11,14 +11,14 @@ file(GLOB_RECURSE SRC_FILES "src/game/*.cpp" "src/game/*.h")
 
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 
-find_package(RAYLIB REQUIRED)
-include_directories(${RAYLIB_INCLUDE_DIR})
-
 include_directories("libs/imgui")
 add_subdirectory("libs/imgui")
 include_directories("libs/mp11/include")
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${RAYLIB_LIBRARY} imgui_lib)
+add_subdirectory("libs/raylib")
+include_directories("libs/raylib/src")
+
+target_link_libraries(${PROJECT_NAME} PRIVATE ${RAYLIB_LIBRARY} imgui_lib raylib)
 
 project(server)
 set(CMAKE_CXX_STANDARD 20)
