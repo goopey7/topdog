@@ -111,7 +111,7 @@ void Server::processMsg(const ClientCommand msg, int index, const std::string& d
 	if (std::holds_alternative<Disconnect>(msg))
 	{
 		std::cout << "Client " << index << " disconnected!" << std::endl;
-		sendToClientsTCP(ClientDisconnected(name), index);
+		sendToClientsTCP(cmd::ClientDisconnected(name), index);
 		clients.erase(clients.begin() + index);
 	}
 	else if (std::holds_alternative<Ready>(msg))
@@ -120,39 +120,39 @@ void Server::processMsg(const ClientCommand msg, int index, const std::string& d
 		clients[index].setReady(readyCmd.ready);
 		if (!clientsAreReady())
 		{
-			sendToClientsTCP(ClientReady(name, readyCmd.ready), index);
+			sendToClientsTCP(cmd::ClientReady(name, readyCmd.ready), index);
 		}
 	}
 	else if (std::holds_alternative<UpdateVel>(msg))
 	{
 		UpdateVel uv = std::get<UpdateVel>(msg);
-		sendToClientsUDP(ClientUpdateVel(name, uv.velx, uv.vely, uv.time), index);
+		sendToClientsUDP(cmd::ClientUpdateVel(name, uv.velx, uv.vely, uv.time), index);
 	}
 	else if (std::holds_alternative<UpdatePos>(msg))
 	{
 		UpdatePos up = std::get<UpdatePos>(msg);
-		sendToClientsTCP(ClientUpdatePos(name, up.posx, up.posy, up.time), index);
+		sendToClientsTCP(cmd::ClientUpdatePos(name, up.posx, up.posy, up.time), index);
 	}
 	else if (std::holds_alternative<RotStart>(msg))
 	{
 		RotStart ur = std::get<RotStart>(msg);
-		sendToClientsTCP(ClientRotStart(name, ur.angle, ur.dir, ur.time), index);
+		sendToClientsTCP(cmd::ClientRotStart(name, ur.angle, ur.dir, ur.time), index);
 	}
 	else if (std::holds_alternative<RotEnd>(msg))
 	{
 		RotEnd ur = std::get<RotEnd>(msg);
-		sendToClientsTCP(ClientRotEnd(name, ur.angle, ur.time), index);
+		sendToClientsTCP(cmd::ClientRotEnd(name, ur.angle, ur.time), index);
 	}
 	else if (std::holds_alternative<Fire>(msg))
 	{
 		Fire fire = std::get<Fire>(msg);
-		sendToClientsTCP(ClientFire(name, fire.posx, fire.posy, fire.velx, fire.vely, fire.time),
-						 index);
+		sendToClientsTCP(
+			cmd::ClientFire(name, fire.posx, fire.posy, fire.velx, fire.vely, fire.time), index);
 	}
 	else if (std::holds_alternative<HealthChange>(msg))
 	{
 		HealthChange hc = std::get<HealthChange>(msg);
-		sendToClientsTCP(ClientHealthChange(name, hc.health, hc.isDead), index);
+		sendToClientsTCP(cmd::ClientHealthChange(name, hc.health, hc.isDead), index);
 		if (hc.isDead)
 		{
 			// mark client as dead
@@ -177,7 +177,7 @@ void Server::processMsg(const ClientCommand msg, int index, const std::string& d
 				{
 					if (!clients[i].getIsDead())
 					{
-						sendToClientsTCP(GameOver(clients[i].getName()));
+						sendToClientsTCP(cmd::GameOver(clients[i].getName()));
 						break;
 					}
 				}

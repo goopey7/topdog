@@ -59,6 +59,49 @@ struct HealthChange
 	bool isDead;
 };
 
+namespace cmd
+{
+	inline Disconnect Disconnect()
+	{
+		return {};
+	}
+
+	inline Ready Ready(bool ready)
+	{
+		return {ready};
+	}
+
+	inline UpdatePos UpdatePos(float posx, float posy, float time)
+	{
+		return {posx, posy, time};
+	}
+
+	inline UpdateVel UpdateVel(float velx, float vely, float time)
+	{
+		return {velx, vely, time};
+	}
+
+	inline RotStart RotStart(float angle, int dir, float time)
+	{
+		return {angle, dir, time};
+	}
+
+	inline RotEnd RotEnd(float angle, float time)
+	{
+		return {angle, time};
+	}
+
+	inline Fire Fire(float posx, float posy, float velx, float vely, float time)
+	{
+		return {posx, posy, velx, vely, time};
+	}
+
+	inline HealthChange HealthChange(float health, bool isDead)
+	{
+		return {health, isDead};
+	}
+}
+
 #define CLIENT_COMMANDS                                                                            \
 	Disconnect, Ready, Fire, UpdatePos, UpdateVel, RotStart, RotEnd, HealthChange
 

@@ -85,6 +85,69 @@ struct ClientHealthChange
 	bool isDead;
 };
 
+namespace cmd
+{
+	inline StartGame StartGame(double time)
+	{
+		return {time};
+	}
+
+	inline NewClient NewClient(const std::string& name)
+	{
+		return {name};
+	}
+
+	inline ClientDisconnected ClientDisconnected(const std::string& name)
+	{
+		return {name};
+	}
+
+	inline ClientReady ClientReady(const std::string& name, bool ready)
+	{
+		return {name, ready};
+	}
+
+	inline ClientUpdateVel ClientUpdateVel(const std::string& name, float velx, float vely,
+										   float time)
+	{
+		return {name, velx, vely, time};
+	}
+
+	inline ClientUpdatePos ClientUpdatePos(const std::string& name, float posx, float posy,
+										   float time)
+	{
+		return {name, posx, posy, time};
+	}
+
+	inline ClientRotStart ClientRotStart(const std::string& name, float angle, int dir,
+										 float time)
+	{
+		return {name, angle, dir, time};
+	}
+
+	inline ClientRotEnd ClientRotEnd(const std::string& name, float angle, float time)
+	{
+		return {name, angle, time};
+	}
+
+	inline ClientFire ClientFire(const std::string& name, float posx, float posy, float velx,
+								 float vely, float time)
+	{
+		return {name, posx, posy, velx, vely, time};
+	}
+
+	inline ClientHealthChange ClientHealthChange(const std::string& name, float health,
+												 bool isDead)
+	{
+		return {name, health, isDead};
+	}
+
+	inline GameOver GameOver(const std::string& winner)
+	{
+		return {winner};
+	}
+}
+
 #define SERVER_COMMANDS                                                                            \
 	StartGame, NewClient, ClientDisconnected, ClientReady, ClientFire, ClientUpdateVel,            \
 		ClientUpdatePos, ClientRotStart, ClientRotEnd, ClientHealthChange, GameOver

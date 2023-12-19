@@ -52,7 +52,7 @@ void Level::update(float dt)
 		if (IsKeyPressed(KEY_SPACE))
 		{
 			std::cout << "Exiting game" << std::endl;
-			client->sendToServerTCP(Disconnect());
+			client->sendToServerTCP(cmd::Disconnect());
 			exit(0);
 		}
 	}
@@ -198,7 +198,7 @@ void Level::updateServer()
 	{
 		float radians = ship.getRotation() * DEG2RAD;
 		Vector2 direction = {sinf(radians), -cosf(radians)};
-		auto fire = Fire(ship.getPosition().x, ship.getPosition().y, direction.x, direction.y,
+		auto fire = cmd::Fire(ship.getPosition().x, ship.getPosition().y, direction.x, direction.y,
 						 getElapsedTimeInSeconds(*gameStartTime));
 		client->sendToServerTCP(fire);
 	}
@@ -212,7 +212,7 @@ void Level::updateServer()
 		 lastVelocitySent.y != ship.getVelocity().y) &&
 		timeSinceLastVelocityUpdate > velocityUpdateRate)
 	{
-		auto uv = UpdateVel(ship.getVelocity().x, ship.getVelocity().y,
+		auto uv = cmd::UpdateVel(ship.getVelocity().x, ship.getVelocity().y,
 							getElapsedTimeInSeconds(*gameStartTime));
 		client->sendToServerUDP(uv);
 
@@ -225,7 +225,7 @@ void Level::updateServer()
 		 lastPositionSent.y != ship.getPosition().y) &&
 		timeSinceLastPositionalUpdate > positionalUpdateRate)
 	{
-		auto up = UpdatePos(ship.getPosition().x, ship.getPosition().y,
+		auto up = cmd::UpdatePos(ship.getPosition().x, ship.getPosition().y,
 							getElapsedTimeInSeconds(*gameStartTime));
 		client->sendToServerTCP(up);
 
@@ -237,7 +237,7 @@ void Level::updateServer()
 		IsKeyPressed(KEY_D))
 	{
 		auto ur =
-			RotStart(ship.getRotation(), (IsKeyPressed(KEY_LEFT) || (IsKeyPressed(KEY_A))) ? -1 : 1,
+			cmd::RotStart(ship.getRotation(), (IsKeyPressed(KEY_LEFT) || (IsKeyPressed(KEY_A))) ? -1 : 1,
 					 getElapsedTimeInSeconds(*gameStartTime));
 		client->sendToServerTCP(ur);
 	}
@@ -245,7 +245,7 @@ void Level::updateServer()
 	if (IsKeyReleased(KEY_LEFT) || IsKeyReleased(KEY_A) || IsKeyReleased(KEY_RIGHT) ||
 		IsKeyReleased(KEY_D))
 	{
-		auto ur = RotEnd(ship.getRotation(), getElapsedTimeInSeconds(*gameStartTime));
+		auto ur = cmd::RotEnd(ship.getRotation(), getElapsedTimeInSeconds(*gameStartTime));
 		client->sendToServerTCP(ur);
 	}
 }
