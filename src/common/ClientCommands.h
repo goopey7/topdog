@@ -64,50 +64,49 @@ struct HealthChange
 
 using ClientCommand = std::variant<CLIENT_COMMANDS>;
 
-#define STRINGIFY_CLIENT_COMMAND(cmd)                                                              \
-	[&]()                                                                                          \
-	{                                                                                              \
-		std::stringstream ss;                                                                      \
-		std::visit(                                                                                \
-			[&](auto&& arg)                                                                        \
-			{                                                                                      \
-				ss << "+";                                                                         \
-				ss << cmd.index();                                                                 \
-				using T = std::decay_t<decltype(arg)>;                                             \
-				if constexpr (std::is_same_v<T, UpdateVel>)                                        \
-				{                                                                                  \
-					ss << ":" << arg.velx << ":" << arg.vely << ":" << arg.time;                   \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, UpdatePos>)                                   \
-				{                                                                                  \
-					ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.time;                   \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, RotStart>)                                    \
-				{                                                                                  \
-					ss << ":" << arg.angle << ":" << arg.dir << ":" << arg.time;                   \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, RotEnd>)                                      \
-				{                                                                                  \
-					ss << ":" << arg.angle << ":" << arg.time;                                     \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, Ready>)                                       \
-				{                                                                                  \
-					ss << ":" << arg.ready;                                                        \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, Fire>)                                        \
-				{                                                                                  \
-					ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx << ":" << arg.vely \
-					   << ":" << arg.time;                                                         \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, HealthChange>)                                \
-				{                                                                                  \
-					ss << ":" << arg.health << ":" << arg.isDead;                                  \
-				}                                                                                  \
-			},                                                                                     \
-			cmd);                                                                                  \
-		ss << ":";                                                                                 \
-		return ss.str();                                                                           \
-	}()
+inline std::string stringifyClientCommand(const ClientCommand& cmd)
+{
+	std::stringstream ss;
+	std::visit(
+		[&](auto&& arg)
+		{
+			ss << "+";
+			ss << cmd.index();
+			using T = std::decay_t<decltype(arg)>;
+			if constexpr (std::is_same_v<T, UpdateVel>)
+			{
+				ss << ":" << arg.velx << ":" << arg.vely << ":" << arg.time;
+			}
+			else if constexpr (std::is_same_v<T, UpdatePos>)
+			{
+				ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.time;
+			}
+			else if constexpr (std::is_same_v<T, RotStart>)
+			{
+				ss << ":" << arg.angle << ":" << arg.dir << ":" << arg.time;
+			}
+			else if constexpr (std::is_same_v<T, RotEnd>)
+			{
+				ss << ":" << arg.angle << ":" << arg.time;
+			}
+			else if constexpr (std::is_same_v<T, Ready>)
+			{
+				ss << ":" << arg.ready;
+			}
+			else if constexpr (std::is_same_v<T, Fire>)
+			{
+				ss << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx << ":" << arg.vely
+				   << ":" << arg.time;
+			}
+			else if constexpr (std::is_same_v<T, HealthChange>)
+			{
+				ss << ":" << arg.health << ":" << arg.isDead;
+			}
+		},
+		cmd);
+	ss << ":";
+	return ss.str();
+}
 
 // https://stackoverflow.com/questions/60564132/default-constructing-an-stdvariant-from-index
 template <typename V> auto variant_from_index(size_t index) -> V

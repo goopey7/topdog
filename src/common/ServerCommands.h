@@ -91,65 +91,60 @@ struct ClientHealthChange
 
 using ServerCommand = std::variant<SERVER_COMMANDS>;
 
-#define STRINGIFY_SERVER_COMMAND(cmd)                                                              \
-	[&]()                                                                                          \
-	{                                                                                              \
-		std::stringstream ss;                                                                      \
-		std::visit(                                                                                \
-			[&](auto&& arg)                                                                        \
-			{                                                                                      \
-				ss << cmd.index();                                                                 \
-				using T = std::decay_t<decltype(arg)>;                                             \
-				if constexpr (std::is_same_v<T, NewClient> ||                                      \
-							  std::is_same_v<T, ClientDisconnected>)                               \
-				{                                                                                  \
-					ss << ":" << arg.name;                                                         \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, ClientReady>)                                 \
-				{                                                                                  \
-					ss << ":" << arg.name << ":" << arg.ready;                                     \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, ClientUpdateVel>)                             \
-				{                                                                                  \
-					ss << ":" << arg.name << ":" << arg.velx << ":" << arg.vely << ":"             \
-					   << arg.time;                                                                \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, ClientUpdatePos>)                             \
-				{                                                                                  \
-					ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":"             \
-					   << arg.time;                                                                \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, ClientRotStart>)                              \
-				{                                                                                  \
-					ss << ":" << arg.name << ":" << arg.angle << ":" << arg.dir << ":"             \
-					   << arg.time;                                                                \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, ClientRotEnd>)                                \
-				{                                                                                  \
-					ss << ":" << arg.name << ":" << arg.angle << ":" << arg.time;                  \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, ClientFire>)                                  \
-				{                                                                                  \
-					ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx \
-					   << ":" << arg.vely << ":" << arg.time;                                      \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, StartGame>)                                   \
-				{                                                                                  \
-					ss << ":" << arg.time;                                                         \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, ClientHealthChange>)                          \
-				{                                                                                  \
-					ss << ":" << arg.name << ":" << arg.health << ":" << arg.isDead;               \
-				}                                                                                  \
-				else if constexpr (std::is_same_v<T, GameOver>)                                    \
-				{                                                                                  \
-					ss << ":" << arg.winner;                                                       \
-				}                                                                                  \
-			},                                                                                     \
-			cmd);                                                                                  \
-		ss << ":";                                                                                 \
-		return ss.str();                                                                           \
-	}()
+inline std::string stringifyServerCommand(const ServerCommand& cmd)
+{
+	std::stringstream ss;
+	std::visit(
+		[&](auto&& arg)
+		{
+			ss << cmd.index();
+			using T = std::decay_t<decltype(arg)>;
+			if constexpr (std::is_same_v<T, NewClient> || std::is_same_v<T, ClientDisconnected>)
+			{
+				ss << ":" << arg.name;
+			}
+			else if constexpr (std::is_same_v<T, ClientReady>)
+			{
+				ss << ":" << arg.name << ":" << arg.ready;
+			}
+			else if constexpr (std::is_same_v<T, ClientUpdateVel>)
+			{
+				ss << ":" << arg.name << ":" << arg.velx << ":" << arg.vely << ":" << arg.time;
+			}
+			else if constexpr (std::is_same_v<T, ClientUpdatePos>)
+			{
+				ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":" << arg.time;
+			}
+			else if constexpr (std::is_same_v<T, ClientRotStart>)
+			{
+				ss << ":" << arg.name << ":" << arg.angle << ":" << arg.dir << ":" << arg.time;
+			}
+			else if constexpr (std::is_same_v<T, ClientRotEnd>)
+			{
+				ss << ":" << arg.name << ":" << arg.angle << ":" << arg.time;
+			}
+			else if constexpr (std::is_same_v<T, ClientFire>)
+			{
+				ss << ":" << arg.name << ":" << arg.posx << ":" << arg.posy << ":" << arg.velx
+				   << ":" << arg.vely << ":" << arg.time;
+			}
+			else if constexpr (std::is_same_v<T, StartGame>)
+			{
+				ss << ":" << arg.time;
+			}
+			else if constexpr (std::is_same_v<T, ClientHealthChange>)
+			{
+				ss << ":" << arg.name << ":" << arg.health << ":" << arg.isDead;
+			}
+			else if constexpr (std::is_same_v<T, GameOver>)
+			{
+				ss << ":" << arg.winner;
+			}
+		},
+		cmd);
+	ss << ":";
+	return ss.str();
+}
 
 // https://stackoverflow.com/questions/60564132/default-constructing-an-stdvariant-from-index
 template <typename V> auto srv_variant_from_index(size_t index) -> V

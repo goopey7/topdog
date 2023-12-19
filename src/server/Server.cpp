@@ -48,7 +48,7 @@ void Server::sendToClientsTCP(const ServerCommand& cmd, int indexToSkip)
 		{
 			continue;
 		}
-		clients[i].sendTCPMsg(STRINGIFY_SERVER_COMMAND(cmd));
+		clients[i].sendTCPMsg(stringifyServerCommand(cmd));
 	}
 }
 
@@ -60,7 +60,7 @@ void Server::sendToClientsUDP(const ServerCommand& cmd, int indexToSkip)
 		{
 			continue;
 		}
-		clients[i].sendUDPMsg(STRINGIFY_SERVER_COMMAND(cmd));
+		clients[i].sendUDPMsg(stringifyServerCommand(cmd));
 	}
 }
 

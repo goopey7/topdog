@@ -123,7 +123,7 @@ const std::vector<Client> Client::connectToServer(const std::string& ip)
 
 void Client::sendToServerTCP(const ClientCommand& command)
 {
-	std::string message = STRINGIFY_CLIENT_COMMAND(command);
+	std::string message = stringifyClientCommand(command);
 	send(socketTCP, message.c_str(), message.size() + 1, 0);
 }
 
@@ -134,7 +134,7 @@ void Client::sendToServerTCP(const std::string& message)
 
 void Client::sendToServerUDP(const ClientCommand& command)
 {
-	std::string message = STRINGIFY_CLIENT_COMMAND(command);
+	std::string message = stringifyClientCommand(command);
 
 	sockaddr_in serverAddr;
 	serverAddr.sin_family = AF_INET;
