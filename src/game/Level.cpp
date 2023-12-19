@@ -18,6 +18,14 @@ void Level::init()
 
 void Level::update(float dt)
 {
+	if (gameOver)
+	{
+		if (IsKeyPressed(KEY_SPACE))
+		{
+			std::cout << "Exiting game" << std::endl;
+			exit(0);
+		}
+	}
 	// check collisions
 	for (int i = 0; i < ship.getBullets().size(); i++)
 	{
@@ -113,6 +121,36 @@ void Level::draw()
 		std::string winMsg = winner + " wins!";
 		DrawText(winMsg.c_str(), GetScreenWidth() / 2 - MeasureText(winMsg.c_str(), 50) / 2,
 				 GetScreenHeight() / 2 - 50, 50, WHITE);
+		DrawText("Press SPACE to exit", GetScreenWidth() / 2 - MeasureText("Press space to exit", 20) / 2,
+				 GetScreenHeight() / 2 + 50, 20, WHITE);
+	}
+	else
+	{
+		int numDead = 0;
+		for (Ship& otherShip : otherShips)
+		{
+			if (otherShip.isDead())
+			{
+				numDead++;
+			}
+		}
+		if (numDead == otherShips.size() - 1 && ship.isDead())
+		{
+			gameOver = true;
+			for (Ship& otherShip : otherShips)
+			{
+				if (!otherShip.isDead())
+				{
+					winner = otherShip.getName();
+					break;
+				}
+			}
+		}
+		else if (numDead == otherShips.size() && !ship.isDead())
+		{
+			gameOver = true;
+			winner = client->getName();
+		}
 	}
 }
 

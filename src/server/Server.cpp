@@ -171,6 +171,7 @@ void Server::processMsg(const ClientCommand msg, int index, const std::string& d
 					if (!clients[i].getIsDead())
 					{
 						sendToClientsTCP(GameOver(clients[i].getName()));
+						bShouldClose = true;
 						break;
 					}
 				}
