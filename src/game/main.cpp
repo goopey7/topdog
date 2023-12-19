@@ -3,6 +3,7 @@
 #include <string>
 #include <rlImGui.h>
 #include <iostream>
+#include <imgui.h>
 
 int main()
 {
@@ -12,6 +13,9 @@ int main()
 	SetWindowState(FLAG_WINDOW_RESIZABLE);
 	game.init();
 	rlImGuiSetup(true);
+	auto& io = ImGui::GetIO();
+	io.IniFilename = nullptr;
+	io.LogFilename = nullptr;
 
 	while (!WindowShouldClose())
 	{
